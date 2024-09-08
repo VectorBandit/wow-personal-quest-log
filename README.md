@@ -17,11 +17,11 @@ I'm planning regular updates, including new features like weekly and daily quest
 
 ### Found a bug?
 
-Report any issues via the GitHub issues tab.
+Report any issues via the [GitHub issues tab](https://github.com/vigcodes/wow-personal-quest-log/issues).
 
 ### Got a feature suggestion?
 
-Share your ideas in the GitHub issues tab!
+Share your ideas in the [GitHub issues tab](https://github.com/vigcodes/wow-personal-quest-log/issues)!
 
 ### Want to support?
 
