@@ -1,0 +1,9 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Script file="Button.lua" />
+    <Script file="Drawer.lua" />
+    <Script file="DynamicList.lua" />
+    <Script file="EditBox.lua" />
+    <Script file="Panel.lua" />
+    <Script file="ScrollFrame.lua" />
+    <Script file="StatusIcon.lua" />
+</Ui>

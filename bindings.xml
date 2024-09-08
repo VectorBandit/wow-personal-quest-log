@@ -1,0 +1,5 @@
+<Bindings>
+	<Binding name="PQL_TOGGLE" header="PQL" category="ADDONS">
+		PQL:Toggle()
+	</Binding>
+</Bindings>

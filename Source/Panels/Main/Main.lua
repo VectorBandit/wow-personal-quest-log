@@ -1,0 +1,558 @@
+PQL.main = PQLFactory.Panel:Create("Main", {size = {280, 550}})
+
+function PQL.main:Init()
+    self.createGroupButton = PQLFactory.Button:CreateIconButton(PQL.main, {
+        icon = "Add",
+        anchor = {"LEFT", PQL.main, "TOPLEFT", 11, -23},
+        tooltipTitle = "Create Quest Group",
+        callback = function()
+            local newQuestGroup = PQL_DB.Groups:Create()
+            PQL.main.GroupDrawer:Open(newQuestGroup.groupId)
+        end,
+    })
+
+	-- Add title
+	self.title = self:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+	PQLSetFont(self.title, { text = "Personal Quest Log" })
+	self.title:SetPoint("LEFT", self, "TOPLEFT", 45, -24)
+
+	self.titleBorder = self:CreateTexture(nil, "BORDER")
+	self.titleBorder:SetHeight(1)
+	self.titleBorder:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 1, -46)
+	self.titleBorder:SetPoint("RIGHT")
+	self.titleBorder:SetTexture(PQLArt("Border.png"))
+
+    self.helpButton = PQLFactory.Button:CreateIconButton(PQL.main, {
+        icon = "Help",
+        anchor = {"RIGHT", PQL.main, "TOPRIGHT", -43, -23},
+        tooltipTitle = "Help",
+        callback = function() self:ToggleHelp() end,
+    })
+
+    self.closeButton = PQLFactory.Button:CreateIconButton(PQL.main, {
+        icon = "Close",
+        anchor = {"RIGHT", PQL.main, "TOPRIGHT", -11, -23},
+        callback = function() PQL.main:Hide() end,
+    })
+
+    self.inner.groups = PQLFactory.DynamicList:Create(self.inner, {
+        spacing = 16,
+        actions = PQL.main.groupsActions
+    })
+
+	-- Update when Groups, Quests, or Goals are updated.
+	PQL_DB:On({"Groups.Updated", "Quests.Updated", "Goals.Updated"}, function()
+		self:Update()
+	end)
+
+	self:Update()
+end
+
+function PQL.main:OnShow()
+	if not PQL.db.profile.seenHelp then
+		self:ToggleHelp()
+		PQL.db.profile.seenHelp = true
+	end
+
+	self:Update()
+end
+
+function PQL.main:OnHide()
+	HelpPlate_Hide()
+end
+
+function PQL.main:Update()
+	PQL_Core:CheckGoalsCompletion()
+	self.inner.groups:Populate()
+end
+
+function PQL.main:PrepareHelp()
+	self.help = {
+		FramePos = { x = 0, y = 0 },
+		FrameSize = { width = 10, height = 10 },
+	}
+
+	-- Create Button
+	table.insert(self.help, {
+		ButtonPos = { x = -18, y = 0 },
+		HighLightBox = { x = 4, y = -3, width = 38, height = 39 },
+		ToolTipDir = "LEFT",
+		ToolTipText = "Create a Quest Group!\n\nQuests can be moved between groups for better organization."
+	})
+
+	-- Groups List
+	table.insert(self.help, {
+		ButtonPos = { x = -18, y = -262 },
+		HighLightBox = { x = 4, y = -49, width = 256, height = 497 },
+		ToolTipDir = "LEFT",
+		ToolTipText = "This is your main list of Groups, Quests, and Goals.\n\n"..
+			"GROUPS: [Click] to Edit or [Right-Click] for more actions.\n\n"..
+			"QUESTS: [Click] to Edit or [Right-Click] for more actions.\n\n"..
+			"GOALS: [Double-Click] to complete custom goals. [Hover] to view Item and Currency information.\n\n"..
+			"Item and Currency goals are completed automatically."
+	})
+
+	-- Any Drawer
+	if self.GroupDrawer.isOpen or self.QuestDrawer.isOpen then
+		-- Close Button
+		table.insert(self.help, {
+			ButtonPos = { x = 795, y = -252 },
+			HighLightBox = { x = 777, y = -255, width = 39, height = 40 },
+			ToolTipDir = "RIGHT",
+			ToolTipText = "Close drawer."
+		})
+	end
+
+	-- Group Drawer
+	if self.GroupDrawer.isOpen then
+		-- Delete Button
+		table.insert(self.help, {
+			ButtonPos = { x = 724, y = -14 },
+			HighLightBox = { x = 708, y = -17, width = 39, height = 40 },
+			ToolTipDir = "RIGHT",
+			ToolTipText = "Delete this Quest Group."
+		})
+
+		-- Fields
+		table.insert(self.help, {
+			ButtonPos = { x = 724, y = -184 },
+			HighLightBox = { x = 298, y = -60, width = 449, height = 294 },
+			ToolTipDir = "RIGHT",
+			ToolTipText = "This is the main information about this Group.\n\n"..
+				"You can use the Notes field to save important information, and you can also [Right-Click] on Items to add links!"
+		})
+
+		-- Quests
+		table.insert(self.help, {
+			ButtonPos = { x = 724, y = -428 },
+			HighLightBox = { x = 298, y = -356, width = 449, height = 190 },
+			ToolTipDir = "RIGHT",
+			ToolTipText = "This is where you manage all Quests from this Group.\n\n"..
+				"AUTO-TRACKING\n\n"..
+				"With this window open, you can [Shift-Click] any vendor item to automatically create a quest to track it.\n\n"..
+				"The addon will also generate all the necessary goals to help you gather the required resources to acquire the item!"
+		})
+	end
+
+	-- Quest Drawer
+	if self.QuestDrawer.isOpen then
+		-- Action Buttons
+		table.insert(self.help, {
+			ButtonPos = { x = 724, y = -14 },
+			HighLightBox = { x = 635, y = -17, width = 112, height = 40 },
+			ToolTipDir = "RIGHT",
+			ToolTipText = "Move, Toggle Visibility, or Delete this Quest."
+		})
+
+		-- Fields
+		table.insert(self.help, {
+			ButtonPos = { x = 724, y = -184 },
+			HighLightBox = { x = 298, y = -60, width = 449, height = 294 },
+			ToolTipDir = "RIGHT",
+			ToolTipText = "This is the main information about this Quest.\n\n"..
+				"You can use the Notes field to save important information, and you can also [Right-Click] on Items to add links!"
+		})
+
+		-- Quests
+		table.insert(self.help, {
+			ButtonPos = { x = 724, y = -428 },
+			HighLightBox = { x = 298, y = -356, width = 449, height = 190 },
+			ToolTipDir = "RIGHT",
+			ToolTipText = "This is where you manage all Goals for this Quest.\n\n"..
+				"[Double-Click] on the Goal type to toggle between available options.\n\n"..
+				"[Shift-Click] on items while editing a field to automatically paste the ID.\n\n"..
+				"For currency IDs, visit Wowhead."
+		})
+	end
+end
+
+function PQL.main:ToggleHelp()
+	if self.isHelpActive then
+		self.isHelpActive = false
+		HelpPlate_Hide()
+	else
+		self.isHelpActive = true
+		self:PrepareHelp()
+
+		HelpPlate_Show(self.help, self, self.helpButton)
+	end
+end
+
+-------------------------------------------------------------------------------
+-- FACTORY | Group
+-------------------------------------------------------------------------------
+
+PQL.main.groupsActions = {
+    FetchEntries = function()
+        return PQL_DB.Groups:GetOrdered()
+    end,
+
+    Create = function(parent)
+        local groupFrame = CreateFrame("Frame", nil, parent)
+        PQLPrepareForText(groupFrame)
+
+        -- Title (Click to Edit)
+        groupFrame.title = CreateFrame("Button", nil, groupFrame)
+        PQLNineSlice(groupFrame.title, "Frame_Accent")
+        PQLSetPoints(groupFrame.title, {
+            {"TOPLEFT"},
+            {"BOTTOMRIGHT", groupFrame, "TOPRIGHT", -34, -24}
+        })
+
+        groupFrame.title:RegisterForClicks("AnyUp")
+        groupFrame.title:SetScript("OnClick", function(_, button)
+			if button == "LeftButton" then
+				PQL.main.GroupDrawer:Open(groupFrame.entryData.groupId)
+			elseif button == "RightButton" then
+				PQL.dropdown:Open({
+					{
+						text = "Add quest",
+						justify = "LEFT",
+						style = "text-default",
+						anchor = {
+							{"TOPLEFT", ad, "TOPLEFT", 0, -24},
+							{"TOPRIGHT", ad, "TOPRIGHT", 0, 24}
+						},
+						callback = function()
+							local newQuest = PQL_DB.Quests:Create(groupFrame.entryData.groupId)
+							PQL.main.QuestDrawer:Open(newQuest.questId)
+						end
+					}
+				}, {
+					{
+						icon = "Simple-Delete",
+						anchor = {"TOPRIGHT", ad, "TOPRIGHT", -48, 0},
+						tooltipTitle = "Delete Group",
+						callback = function()
+							PQL.confirmationPopup:Open({
+								OnConfirm = function()
+									PQL_DB.Groups:Delete(groupFrame.entryData.groupId)
+									PQL.main.GroupDrawer:Close()
+								end
+							})
+						end
+					},
+					{
+						icon = "Simple-ArrowDown",
+						anchor = {"TOPRIGHT", ad, "TOPRIGHT", 0, 0},
+						tooltipTitle = "Move Down",
+						callback = function()
+							PQL_DB.Groups:Reorder(groupFrame.entryData.groupId, 1)
+						end
+					},
+					{
+						icon = "Simple-ArrowUp",
+						anchor = {"TOPRIGHT", ad, "TOPRIGHT", -24, 0},
+						tooltipTitle = "Move Up",
+						callback = function()
+							PQL_DB.Groups:Reorder(groupFrame.entryData.groupId, -1)
+						end
+					},
+					{
+						icon = "Simple-Edit",
+						anchor = {"TOPRIGHT", ad, "TOPRIGHT", -72, 0},
+						tooltipTitle = "Edit Group",
+						callback = function()
+							PQL.main.GroupDrawer:Open(groupFrame.entryData.groupId)
+						end
+					}
+				})
+			end
+        end)
+
+        groupFrame.title.titleText = groupFrame.title:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        PQLSetPoints(groupFrame.title.titleText, {
+            {"TOPLEFT", groupFrame.title, "TOPLEFT", 6, 0},
+            {"BOTTOMRIGHT", groupFrame.title, "BOTTOMRIGHT", -6, 0}
+        })
+
+        PQLSetFont(groupFrame.title.titleText, {
+            size = 12,
+            color = PQL_THEME[2],
+            justify = "LEFT"
+        })
+
+        groupFrame.title:SetScript("OnEnter", function()
+            PQLNineSlice(groupFrame.title, "Frame_Accent-Highlight")
+            groupFrame.title.titleText:SetTextColor(1, 1, 1, 1)
+        end)
+
+        groupFrame.title:SetScript("OnLeave", function()
+            PQLNineSlice(groupFrame.title, "Frame_Accent")
+            groupFrame.title.titleText:SetTextColor(unpack(PQL_THEME[2]))
+        end)
+
+		-- Collapse Button
+        groupFrame.collapseButton = PQLFactory.Button:CreateIconButton(groupFrame, {
+            icon = "ChevronDown",
+            anchor = {"TOPRIGHT"},
+            callback = function()
+				PQL_DB.Groups:Update(groupFrame.entryData.groupId, "isCollapsed", not groupFrame.entryData.isCollapsed)
+            end
+        })
+
+        -- Inner Wrapper (Quests List)
+        groupFrame.inner = CreateFrame("Frame", nil, groupFrame)
+        PQLPrepareForText(groupFrame.inner)
+        PQLSetPoints(groupFrame.inner, {{"TOPLEFT", groupFrame, "TOPLEFT", 0, -39}, {"TOPRIGHT"}})
+
+        groupFrame.inner.quests = PQLFactory.DynamicList:Create(groupFrame.inner, {
+            actions = PQL.main.questsActions,
+            spacing = 15
+        })
+
+        return groupFrame
+    end,
+
+    Init = function(groupFrame)
+        groupFrame.title.titleText:SetText(groupFrame.entryData.groupTitle)
+        groupFrame.collapseButton:Update({
+			icon = groupFrame.entryData.isCollapsed and "ChevronLeft" or "ChevronDown"
+		})
+
+        -- Update the quests list.
+		if groupFrame.entryData.isCollapsed then
+			groupFrame.inner:Hide()
+		else
+			groupFrame.inner.quests:Populate(groupFrame.entryData.groupId)
+			groupFrame.inner:Show()
+		end
+
+        -- Update the group frame height.
+		local groupFrameHeight = groupFrame.entryData.isCollapsed and 24 or (
+			24 + (groupFrame.inner.quests:IsEmpty() and 0 or 15 + groupFrame.inner:GetHeight())
+		)
+
+        groupFrame:SetHeight(groupFrameHeight)
+    end
+}
+
+-------------------------------------------------------------------------------
+-- FACTORY | Quest
+-------------------------------------------------------------------------------
+
+PQL.main.questsActions = {
+    FetchEntries = function(groupId)
+        return PQL_DB.Quests:GetByGroup(groupId, true)
+    end,
+
+    Create = function(parent)
+        local questFrame = CreateFrame("Frame", nil, parent)
+        PQLPrepareForText(questFrame)
+
+        -- Title (Click to Edit)
+        questFrame.title = CreateFrame("Button", nil, questFrame)
+        PQLPrepareForText(questFrame.title)
+        PQLSetPoints(questFrame.title, {{"TOPLEFT"}, {"RIGHT"}})
+
+        questFrame.title:RegisterForClicks("AnyUp")
+        questFrame.title:SetScript("OnClick", function(_, button)
+			if button == "LeftButton" then
+				PQL.main.QuestDrawer:Open(questFrame.entryData.questId)
+			elseif button == "RightButton" then
+				PQL.dropdown:Open(nil, {
+					{
+						icon = "Simple-Delete",
+						tooltipTitle = "Delete Quest",
+						callback = function()
+							PQL.confirmationPopup:Open({
+								OnConfirm = function()
+									PQL_DB.Quests:Delete(questFrame.entryData.questId)
+								end
+							})
+						end
+					},
+					{
+						icon = "Simple-ArrowDown",
+						tooltipTitle = "Move Down",
+						callback = function()
+							PQL_DB.Quests:Reorder(questFrame.entryData.questId, 1)
+						end
+					},
+					{
+						icon = "Simple-ArrowUp",
+						tooltipTitle = "Move Up",
+						callback = function()
+							PQL_DB.Quests:Reorder(questFrame.entryData.questId, -1)
+						end
+					},
+					{
+						icon = "Simple-VisibleOff",
+						tooltipTitle = "Hide Quest",
+						callback = function()
+							PQL_DB.Quests:Update(questFrame.entryData.questId, "isVisible", not questFrame.entryData.isVisible)
+						end
+					},
+					{
+						icon = "Simple-Move",
+						tooltipTitle = "Move Quest",
+						callback = function()
+							local options = PQL_DB.Groups:GetAsDropdownOptions(function(group)
+								PQL_DB.Quests:Update(questFrame.entryData.questId, "groupId", group.groupId)
+							end)
+
+							PQL.dropdown:Open(options)
+						end
+					},
+					{
+						icon = "Simple-Edit",
+						tooltipTitle = "Edit Quest",
+						callback = function()
+							PQL.main.QuestDrawer:Open(questFrame.entryData.questId)
+						end
+					},
+				})
+			end
+        end)
+
+        questFrame.title.titleText = questFrame.title:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        PQLSetPoints(questFrame.title.titleText, {{"TOPLEFT"}, {"RIGHT"}})
+        PQLSetFont(questFrame.title.titleText, {
+            size = 12,
+            justify = "LEFT",
+            align = "TOP",
+            color = PQL_THEME[2]
+        })
+
+        questFrame.title:SetScript("OnEnter", function()
+            questFrame.title.titleText:SetTextColor(1, 1, 1, 1)
+        end)
+
+        questFrame.title:SetScript("OnLeave", function()
+            questFrame.title.titleText:SetTextColor(unpack(PQL_THEME[2]))
+        end)
+
+        -- Inner (Goals List)
+        questFrame.inner = CreateFrame("Frame", nil, questFrame)
+        PQLPrepareForText(questFrame.inner)
+
+        questFrame.inner.goals = PQLFactory.DynamicList:Create(questFrame.inner, {
+            actions = PQL.main.goalsActions
+        })
+
+        return questFrame
+    end,
+
+    Init = function(questFrame)
+		local title = questFrame.entryData.questTitle:trim() ~= "" and questFrame.entryData.questTitle or "[NO_TITLE]"
+
+		-- Append the goal status (completed/total)
+		local completed, _, total = PQL_DB.Goals:GetCount(questFrame.entryData.questId)
+		if total > 0 then
+			title = string.format("%s (%d/%d)", title, completed, total)
+		end
+
+        questFrame.title.titleText:SetText(title)
+        questFrame.title:SetHeight(questFrame.title.titleText:GetStringHeight())
+
+        -- The position needs to be set after the quest title has been calculated
+        -- because its height will determine the goals list position.
+        PQLSetPoints(questFrame.inner, {{"TOPLEFT", questFrame.title, "BOTTOMLEFT", 0, -14}, {"RIGHT"}})
+
+        -- Populate the list of goals.
+        questFrame.inner.goals:Populate(questFrame.entryData.questId)
+
+        -- Update the height of this frame to be the height of the quest title + spacing + the list height.
+		local questFrameHeight = questFrame.title:GetHeight() + (
+			questFrame.inner.goals:IsEmpty() and 0 or 14 + questFrame.inner:GetHeight()
+		)
+
+        questFrame:SetHeight(questFrameHeight)
+    end
+}
+
+-------------------------------------------------------------------------------
+-- FACTORY | Goal
+-------------------------------------------------------------------------------
+
+PQL.main.goalsActions = {
+    FetchEntries = function(questId)
+        return PQL_DB.Goals:GetByQuest(questId)
+    end,
+
+    Create = function(parent)
+        local goalFrame = CreateFrame("Button", nil, parent)
+        PQLPrepareForText(goalFrame)
+
+		-- Status Icon
+        goalFrame.statusIcon = PQLFactory.StatusIcon:Create(goalFrame, {
+            icon = "Check",
+            anchor = {{"TOPLEFT"}}
+        })
+
+		-- Text
+        goalFrame.text = goalFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        PQLSetPoints(goalFrame.text, {{"TOPLEFT", goalFrame, "TOPLEFT", 17, 0}, {"RIGHT"}})
+        PQLSetFont(goalFrame.text, {
+            size = 12,
+            justify = "LEFT",
+            color = {1, 1, 1, 0.7}
+        })
+
+		-- Setup manual completion for "Custom" goals.
+        goalFrame:RegisterForClicks("LeftButtonUp")
+
+        goalFrame:SetScript("OnDoubleClick", function()
+            if goalFrame.entryData.goalType == 1 then
+				PQL_DB.Goals:Update(goalFrame.entryData.goalId, "isCompleted", not goalFrame.entryData.isCompleted)
+            end
+        end)
+
+		goalFrame:SetScript("OnEnter", function()
+			goalFrame.text:SetTextColor(1, 1, 1, 1)
+
+			if goalFrame.entryData.goalType == 2 then
+				PQL_Data.Items:ShowTooltip(goalFrame.entryData.goalDetails.resourceId, goalFrame)
+			elseif goalFrame.entryData.goalType == 3 then
+				PQL_Data.Currencies:ShowTooltip(goalFrame.entryData.goalDetails.resourceId, goalFrame)
+			end
+		end)
+
+		goalFrame:SetScript("OnLeave", function()
+			goalFrame.text:SetTextColor(1, 1, 1, 0.7)
+			GameTooltip:Hide()
+		end)
+
+        return goalFrame
+    end,
+
+    Init = function(goalFrame)
+		local goal = goalFrame.entryData
+		local details = goal.goalDetails or {}
+
+		local t = goalFrame.text
+
+		-- Set completion status.
+		goalFrame.statusIcon:SetStatus(goal.isCompleted)
+
+        -- Goal Type: Custom
+        if goal.goalType == 1 then
+			PQLSetText(t, details.description)
+
+		-- Goal Type: Item OR Currency
+		elseif goal.goalType == 2 or goal.goalType == 3 then
+			local data = goal.goalType == 2 and
+				PQL_Data.Items:Get(details.resourceId) or
+				PQL_Data.Currencies:Get(details.resourceId)
+
+			if data then
+				local r = details.requiredCount or 0
+				r = tonumber(r) or 0
+				local c = details.currentCount or 0
+				c = tonumber(c) or 0
+				if c > r then c = r end
+
+				t:SetFormattedText("%d/%d %s", c, r, data.name)
+			else
+				t:SetText(goal.goalType == 2 and "[ITEM_NOT_FOUND]" or "[CURRENCY_NOT_FOUND]")
+			end
+
+		-- Not Supported
+        else
+            goalFrame.text:SetText("[UNSUPPORTED_GOAL_TYPE]")
+        end
+
+        goalFrame:SetHeight(goalFrame.text:GetStringHeight())
+    end
+}
+

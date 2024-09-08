@@ -1,0 +1,58 @@
+<Ui>
+    <!--
+        PQLEditBoxTemplate : EditBox with the option to set a placeholder.
+        PQLManagerCategoryTemplate : Display for a category in the Manager panel.
+        PQLButtonTemplate : A simple button.
+    -->
+    <Frame name="PQLEditBoxTemplate" virtual="true">
+        <Size x="100" y="24" />
+
+        <Frames>
+            <EditBox parentKey="editBox" inherits="PQLEditBoxFieldTemplate" />
+        </Frames>
+    </Frame>
+
+    <EditBox name="PQLEditBoxFieldTemplate" autofocus="false" virtual="true">
+        <TextInsets>
+            <AbsInset left="6" right="6" top="6" bottom="6" />
+        </TextInsets>
+
+        <Layers>
+            <Layer level="ARTWORK">
+                <FontString parentKey="placeholder" inherits="GameFontNormal">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="6" y="-6" />
+                    </Anchors>
+                </FontString>
+
+                <FontString parentKey="displayValue" inherits="GameFontNormal">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="6" y="-6" />
+                        <Anchor point="BOTTOMRIGHT" x="-6" y="6" />
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+
+        <FontString parentKey="input" inherits="GameFontNormal">
+            <Color r="1" g="1" b="1" a="1" />
+        </FontString>
+
+        <Scripts>
+            <OnEscapePressed>
+                self:ClearFocus()
+            </OnEscapePressed>
+            <OnTextChanged>
+                if self:GetText():trim():len() > 0 then
+                    self.placeholder:Hide()
+                else
+                    self.placeholder:Show()
+                end
+
+                if self["OnChanged"] then
+                    self:OnChanged(self:GetText():trim())
+                end
+            </OnTextChanged>
+        </Scripts>
+    </EditBox>
+</Ui>

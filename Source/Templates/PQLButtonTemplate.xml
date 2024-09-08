@@ -1,0 +1,15 @@
+<Ui>
+    <!--
+        PQLEditBoxTemplate : EditBox with the option to set a placeholder.
+        PQLManagerCategoryTemplate : Display for a category in the Manager panel.
+        PQLButtonTemplate : A simple button.
+    -->
+    <Button name="PQLButtonTemplate" virtual="true">
+        <Size x="60" y="24" />
+        <Layers>
+            <Layer level="ARTWORK">
+                <FontString parentKey="text" inherits="GameFontNormal" />
+            </Layer>
+        </Layers>
+    </Button>
+</Ui>

@@ -1,0 +1,18 @@
+## Interface: 110002
+## Version: 0.0.1
+
+## Title: Personal Quest Log
+## Notes: Stay organized by creating your very own, personal quests!
+## IconTexture: Interface\Addons\PersonalQuestLog\Art\Icon.png
+
+## Author: Aru
+
+## TESTX-Curse-Project-ID: 979806
+## TESTX-Wago-ID: mNwQDBKo
+## TESTX-WoWI-ID: 26696
+
+## SavedVariables: PersonalQuestLogDB
+## OptionalDeps: Ace3
+## DefaultState: enabled
+
+Source\Manifest.xml
