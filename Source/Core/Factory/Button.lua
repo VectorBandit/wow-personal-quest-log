@@ -90,9 +90,9 @@ function PQLFactory.Button:_SetButtonData(button)
         nsNormal = "Button_Text"
         nsHighlight = "Button_Text-Highlight"
     elseif button.data.style == "positive" then
-        button.text:SetTextColor(unpack(PQL_THEME.valid))
+        button.text:SetTextColor(PQLTheme:Color("positive"))
     elseif button.data.style == "negative" then
-        button.text:SetTextColor(unpack(PQL_THEME.invalid))
+        button.text:SetTextColor(PQLTheme:Color("negative"))
     end
 
     PQLNineSlice(button, nsNormal)

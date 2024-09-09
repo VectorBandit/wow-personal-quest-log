@@ -36,7 +36,7 @@ function PQL.main:Init()
     })
 
     self.inner.groups = PQLFactory.DynamicList:Create(self.inner, {
-        spacing = 16,
+        spacing = 12,
         actions = PQL.main.groupsActions
     })
 
@@ -268,7 +268,7 @@ PQL.main.groupsActions = {
 
         PQLSetFont(groupFrame.title.titleText, {
             size = 12,
-            color = PQL_THEME[2],
+            color = PQLTheme:ColorTable("text"),
             justify = "LEFT"
         })
 
@@ -279,7 +279,7 @@ PQL.main.groupsActions = {
 
         groupFrame.title:SetScript("OnLeave", function()
             PQLNineSlice(groupFrame.title, "Frame_Accent")
-            groupFrame.title.titleText:SetTextColor(unpack(PQL_THEME[2]))
+            groupFrame.title.titleText:SetTextColor(PQLTheme:Color("text"))
         end)
 
 		-- Collapse Button
@@ -411,7 +411,7 @@ PQL.main.questsActions = {
             size = 12,
             justify = "LEFT",
             align = "TOP",
-            color = PQL_THEME[2]
+            color = PQLTheme:ColorTable("text")
         })
 
         questFrame.title:SetScript("OnEnter", function()
@@ -419,7 +419,7 @@ PQL.main.questsActions = {
         end)
 
         questFrame.title:SetScript("OnLeave", function()
-            questFrame.title.titleText:SetTextColor(unpack(PQL_THEME[2]))
+            questFrame.title.titleText:SetTextColor(PQLTheme:Color("text"))
         end)
 
         -- Inner (Goals List)

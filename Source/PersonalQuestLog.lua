@@ -3,17 +3,6 @@ local AceAddon = LibStub("AceAddon-3.0")
 BINDING_HEADER_PQL = "Personal Quest Log"
 BINDING_NAME_PQL_TOGGLE = "Show/Hide Personal Quest Log"
 
-PQL_THEME = {
-    {0.984, 0.961, 0.937, 1},
-    {0.949, 0.827, 0.671, 1},
-    {0.776, 0.624, 0.647, 1},
-    {0.545, 0.427, 0.612, 1},
-    {0.286, 0.302, 0.494, 1},
-    {0.153, 0.153, 0.267, 1},
-    invalid = {0.937, 0.584, 0.635, 1},
-	valid = {0.584, 0.937, 0.6, 1}
-}
-
 PQL = AceAddon:NewAddon("PQL", "AceConsole-3.0")
 PQL._listeners = {}
 PQL._focusedEditBox = nil

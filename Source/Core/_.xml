@@ -3,4 +3,5 @@
     <Script file="Data.lua"/>
     <Script file="Factory.lua"/>
 	<Include file="Factory/_.xml"/>
+    <Script file="Theme.lua"/>
 </Ui>
