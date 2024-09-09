@@ -25,6 +25,7 @@ function m:OnInitialize()
 							LacklusterCarrot = "Lackluster - Carrot",
 							LacklusterLime = "Lackluster - Lime",
 							LacklusterSky = "Lackluster - Sky",
+							Minimal = "Minimal",
 							Slurry = "Slurry",
 						},
 						set = "SetThemeOption",

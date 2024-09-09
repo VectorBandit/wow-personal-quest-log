@@ -22,7 +22,7 @@ function PQL:OnInitialize()
     PQL_DB:Init()
     PQL_Core:Init()
 
-    self:SetupDebuggingTools()
+    -- self:SetupDebuggingTools()
 
     self.confirmationPopup:Init()
 	self.dropdown:Init()
