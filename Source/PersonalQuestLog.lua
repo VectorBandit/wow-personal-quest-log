@@ -14,7 +14,7 @@ PQL_THEME = {
 	valid = {0.584, 0.937, 0.6, 1}
 }
 
-PQL = AceAddon:NewAddon("PersonalQuestLog", "AceConsole-3.0")
+PQL = AceAddon:NewAddon("PQL", "AceConsole-3.0")
 PQL._listeners = {}
 PQL._focusedEditBox = nil
 
@@ -29,8 +29,6 @@ function PQL:OnInitialize()
 
     -- Small forwarding for modified click on items.
     hooksecurefunc("HandleModifiedItemClick", function(itemLink, a, b, c)
-		if not PQL.main.isOpen then return end
-
 		if IsShiftKeyDown() and not IsControlKeyDown() then
 			local itemId = select(3, strfind(itemLink, "item:(%d+)"))
 
@@ -51,15 +49,21 @@ function PQL:OnInitialize()
 	self.ph:RegisterEvent("MERCHANT_UPDATE")
 	self.ph:RegisterEvent("BAG_UPDATE")
 	self.ph:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
+	self.ph:RegisterEvent("ITEM_DATA_LOAD_RESULT")
+	self.ph:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 
-	self.ph:SetScript("OnEvent", function(_, event)
+	self.ph:SetScript("OnEvent", function(_, event, arg1, arg2)
 		-- Store merchant items when a store is opened.
 		if event == "MERCHANT_SHOW" or event == "MERCHANT_UPDATE" then
 			PQL_Data.Merchant:Update()
 
 		-- Bag items or currency have changed. Update the quest list.
-		elseif event == "BAG_UPDATE" and event == "CURRENCY_DISPLAY_UPDATE" then
+		elseif event == "BAG_UPDATE" or event == "CURRENCY_DISPLAY_UPDATE" then
 			self.main:Update()
+
+		-- Item info received (async response).
+		elseif event == "ITEM_DATA_LOAD_RESULT" or event == "GET_ITEM_INFO_RECEIVED" then
+			PQL_Data.Items:_RunGetCallbacks(arg1, arg2)
 		end
 	end)
 end

@@ -61,28 +61,43 @@ end
 -- Items
 -------------------------------------------------------------------------------
 
-PQL_Data.Items = {}
+PQL_Data.Items = {
+	_getCallbacks = {}
+}
 
 function PQL_Data.Items:ShowTooltip(id, anchorTo)
-	local item = self:Get(id)
-
-	if item then
-		if anchorTo then PQLAttachTooltip(anchorTo) end
-		GameTooltip:SetHyperlink(item.link)
-		GameTooltip:Show()
-	end
+	self:Get(id, function(item)
+		if item then
+			if anchorTo then PQLAttachTooltip(anchorTo) end
+			GameTooltip:SetHyperlink(item.link)
+			GameTooltip:Show()
+		end
+	end)
 end
 
-function PQL_Data.Items:Get(id)
-	if not id then return nil end
-	local itemName, itemLink = C_Item.GetItemInfo(id)
-	if not itemName then return nil end
+function PQL_Data.Items:Get(id, callback)
+	if not id then callback(nil) end
 
-	return {
-		id = id,
-		name = itemName,
-		link = itemLink
-	}
+	local itemName, itemLink = C_Item.GetItemInfo(id)
+
+	if not itemName then
+		-- WoW is probably still processing the request.
+		-- Let's save the callback and maybe respond later.
+		if not PQL_Data.Items._getCallbacks["item_"..id] then
+			PQL_Data.Items._getCallbacks["item_"..id] = {}
+		end
+
+		table.insert(PQL_Data.Items._getCallbacks["item_"..id], callback)
+
+		-- Immediately respond with nil.
+		callback(nil)
+	else
+		callback({
+			id = id,
+			name = itemName,
+			link = itemLink,
+		})
+	end
 end
 
 function PQL_Data.Items:GetCount(id)
@@ -90,6 +105,18 @@ function PQL_Data.Items:GetCount(id)
 	if not id then return 0 end
 
 	return GetItemCount(id, true, false, true)
+end
+
+function PQL_Data.Items:_RunGetCallbacks(id, success)
+	if not PQL_Data.Items._getCallbacks["item_"..id] then return end
+
+	for i, callback in ipairs(PQL_Data.Items._getCallbacks["item_"..id]) do
+		if callback and success then
+			-- Call the Get function again, which will hopefully return the item correctly this time.
+			PQL_Data.Items:Get(id, callback)
+			PQL_Data.Items._getCallbacks["item_"..id][i] = nil
+		end
+	end
 end
 
 -------------------------------------------------------------------------------

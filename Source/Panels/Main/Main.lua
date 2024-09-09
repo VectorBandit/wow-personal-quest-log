@@ -517,35 +517,27 @@ PQL.main.goalsActions = {
     end,
 
     Init = function(goalFrame)
-		local goal = goalFrame.entryData
-		local details = goal.goalDetails or {}
-
-		local t = goalFrame.text
-
 		-- Set completion status.
-		goalFrame.statusIcon:SetStatus(goal.isCompleted)
+		goalFrame.statusIcon:SetStatus(goalFrame.entryData.isCompleted)
 
         -- Goal Type: Custom
-        if goal.goalType == 1 then
-			PQLSetText(t, details.description)
+        if goalFrame.entryData.goalType == 1 then
+			PQLSetText(goalFrame.text, goalFrame.entryData.goalDetails.description)
 
-		-- Goal Type: Item OR Currency
-		elseif goal.goalType == 2 or goal.goalType == 3 then
-			local data = goal.goalType == 2 and
-				PQL_Data.Items:Get(details.resourceId) or
-				PQL_Data.Currencies:Get(details.resourceId)
+		-- Goal Type: Item
+		elseif goalFrame.entryData.goalType == 2 then
+			-- Set the item name as NOT FOUND until we receive a response from the API.
+			PQL.main:AsyncUpdateGoalInfo(goalFrame, nil)
 
-			if data then
-				local r = details.requiredCount or 0
-				r = tonumber(r) or 0
-				local c = details.currentCount or 0
-				c = tonumber(c) or 0
-				if c > r then c = r end
+			-- Request the item information, and then update the goal again.
+			PQL_Data.Items:Get(goalFrame.entryData.goalDetails.resourceId, function(item)
+				PQL.main:AsyncUpdateGoalInfo(goalFrame, item)
+			end)
 
-				t:SetFormattedText("%d/%d %s", c, r, data.name)
-			else
-				t:SetText(goal.goalType == 2 and "[ITEM_NOT_FOUND]" or "[CURRENCY_NOT_FOUND]")
-			end
+		-- Goal Type: Currency
+		elseif goalFrame.entryData.goalType == 3 then
+			local currencyData = PQL_Data.Currencies:Get(goalFrame.entryData.goalDetails.resourceId)
+			PQL.main:AsyncUpdateGoalInfo(goalFrame, currencyData)
 
 		-- Not Supported
         else
@@ -555,4 +547,23 @@ PQL.main.goalsActions = {
         goalFrame:SetHeight(goalFrame.text:GetStringHeight())
     end
 }
+
+function PQL.main:AsyncUpdateGoalInfo(goalFrame, resourceData)
+	-- Prepare the resource count text.
+	local r = goalFrame.entryData.goalDetails.requiredCount or 0
+	r = tonumber(r) or 0
+	local c = goalFrame.entryData.goalDetails.currentCount or 0
+	c = tonumber(c) or 0
+	-- WARN: Removing clamp until a total amount is not shown.
+	-- if c > r then c = r end
+
+	local resourceCountText = string.format("%d/%d", c, r)
+
+	-- Prepare the resource name text.
+	local resourceNameText = resourceData and resourceData.name or (
+		goalFrame.entryData.goalType == 2 and "[ITEM_NOT_FOUND]" or "[CURRENCY_NOT_FOUND]"
+	)
+
+	goalFrame.text:SetFormattedText("%s %s", resourceCountText, resourceNameText)
+end
 

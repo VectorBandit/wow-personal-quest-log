@@ -18,6 +18,8 @@ function PQLFactory.Panel:Create(name, params)
     end
 
     function panel:FactoryInit()
+		panel.isOpen = true
+
 		PQLNineSlice(panel, "Dialog")
 
 		panel:SetFrameStrata("HIGH")
