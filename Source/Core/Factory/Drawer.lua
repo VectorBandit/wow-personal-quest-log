@@ -1,7 +1,7 @@
 PQLFactory.Drawer = {}
 
-function PQLFactory.Drawer:Create(params)
-	local d = CreateFrame("Frame", nil, PQL.main)
+function PQLFactory.Drawer:Create(name, params)
+	local d = CreateFrame("Frame", name, PQL.main)
 
 	function d:FactoryInit()
 		d:SetWidth(500)
@@ -37,6 +37,9 @@ function PQLFactory.Drawer:Create(params)
 
 		-- Run custom initialize function
 		d:Init()
+
+		-- Allow the player to close the drawer when pressing Escape.
+		tinsert(UISpecialFrames, d:GetName())
 	end
 
 	function d:Open(data)

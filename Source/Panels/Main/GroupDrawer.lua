@@ -1,4 +1,4 @@
-PQL.main.GroupDrawer = PQLFactory.Drawer:Create({ title = "Group Details" })
+PQL.main.GroupDrawer = PQLFactory.Drawer:Create("Group", { title = "Group Details" })
 PQL.main:AddModule("GroupDrawer")
 PQL.main:AddDrawer("GroupDrawer")
 

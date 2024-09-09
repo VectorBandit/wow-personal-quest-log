@@ -1,4 +1,4 @@
-PQL.main.QuestDrawer = PQLFactory.Drawer:Create({ title = "Quest Details" })
+PQL.main.QuestDrawer = PQLFactory.Drawer:Create("Quest", { title = "Quest Details" })
 PQL.main:AddModule("QuestDrawer")
 PQL.main:AddDrawer("QuestDrawer")
 
