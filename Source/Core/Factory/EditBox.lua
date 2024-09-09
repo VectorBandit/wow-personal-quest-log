@@ -101,44 +101,37 @@ function PQLFactory.EditBox:Create(parent, params)
 		local linkType = PQL_Data.Links:GetType(link)
 
 		if button == "LeftButton" and linkType == "item" and IsControlKeyDown() then
-			-- Attempt to dress up.
 			local itemId = PQL_Data.Links:GetItemId(link)
 			if itemId and C_Item.IsDressableItemByID(itemId) then DressUpVisual(link) end
-
-			-- if linkType == "item" then
-			-- elseif linkType == "map" then
-			-- end
 		elseif button == "RightButton" and linkType == "map" then
-			local rawPoint, point = PQL_Data.Links:GetMapPointInfo(link)
+			local _, point = PQL_Data.Links:GetMapPointInfo(link)
+			if not point then return end
+			PQL.dropdown:Open({
+				{
+					text = "Add WoW waypoint",
+					callback = function() C_Map.SetUserWaypoint(point) end
+				},
+				{
+					text = "Add TomTom waypoint",
+					callback = function()
+						local mapInfo = C_Map.GetMapInfo(point.uiMapID)
+						local waypointText = mapInfo.name
 
-			if point then
-				PQL.dropdown:Open({
-					{
-						text = "Add WoW waypoint",
-						callback = function() C_Map.SetUserWaypoint(point) end
-					},
-					{
-						text = "Add TomTom waypoint",
-						callback = function()
-							local mapInfo = C_Map.GetMapInfo(rawPoint.mapId)
-							local waypointText = mapInfo.name
-
-							if params.FilterMapLinkWaypointText then
-								waypointText = params.FilterMapLinkWaypointText(waypointText, mapInfo)
-							end
-
-							if TomTom then
-								TomTom:AddWaypoint(point.uiMapID, point.position.x, point.position.y, {
-									title = waypointText,
-									persistent = nil,
-									minimap = true,
-									world = true
-								})
-							end
+						if params.FilterMapLinkWaypointText then
+							waypointText = params.FilterMapLinkWaypointText(waypointText, mapInfo)
 						end
-					}
-				})
-			end
+
+						if TomTom then
+							TomTom:AddWaypoint(point.uiMapID, point.position.x, point.position.y, {
+								title = waypointText,
+								persistent = nil,
+								minimap = true,
+								world = true
+							})
+						end
+					end
+				}
+			})
 		end
 	end)
 
