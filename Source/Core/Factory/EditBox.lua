@@ -97,15 +97,48 @@ function PQLFactory.EditBox:Create(parent, params)
 		GameTooltip:Hide()
 	end)
 
-	editBoxWrapper.editBox:SetScript("OnHyperlinkClick", function(_, link)
+	editBoxWrapper.editBox:SetScript("OnHyperlinkClick", function(_, link, _, button)
 		local linkType = PQL_Data.Links:GetType(link)
 
-		if linkType == "item" then
+		if button == "LeftButton" and linkType == "item" and IsControlKeyDown() then
+			-- Attempt to dress up.
 			local itemId = PQL_Data.Links:GetItemId(link)
-			if IsControlKeyDown() and itemId and C_Item.IsDressableItemByID(itemId) then DressUpVisual(link) end
-		elseif linkType == "map" then
-			local _, point = PQL_Data.Links:GetMapPointInfo(link)
-			if point then C_Map.SetUserWaypoint(point) end
+			if itemId and C_Item.IsDressableItemByID(itemId) then DressUpVisual(link) end
+
+			-- if linkType == "item" then
+			-- elseif linkType == "map" then
+			-- end
+		elseif button == "RightButton" and linkType == "map" then
+			local rawPoint, point = PQL_Data.Links:GetMapPointInfo(link)
+
+			if point then
+				PQL.dropdown:Open({
+					{
+						text = "Add WoW waypoint",
+						callback = function() C_Map.SetUserWaypoint(point) end
+					},
+					{
+						text = "Add TomTom waypoint",
+						callback = function()
+							local mapInfo = C_Map.GetMapInfo(rawPoint.mapId)
+							local waypointText = mapInfo.name
+
+							if params.FilterMapLinkWaypointText then
+								waypointText = params.FilterMapLinkWaypointText(waypointText, mapInfo)
+							end
+
+							if TomTom then
+								TomTom:AddWaypoint(point.uiMapID, point.position.x, point.position.y, {
+									title = waypointText,
+									persistent = nil,
+									minimap = true,
+									world = true
+								})
+							end
+						end
+					}
+				})
+			end
 		end
 	end)
 

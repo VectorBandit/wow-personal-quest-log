@@ -30,17 +30,17 @@ function PQL_Data.Links:GetMapPointInfo(link)
 	local _, _, mapId, x, y = strfind(link, "worldmap:(%d+):(%d+):(%d+)")
 
 	if mapId and x and y then
+		mapId = tonumber(mapId)
+		x = tonumber(x)
+		y = tonumber(y)
+
 		local mapPoint = UiMapPoint.CreateFromVector2D(mapId, {
 			x = x / 10000,
 			y = y / 10000
 		})
 
 		return unpack({
-			{
-				mapId = mapId,
-				x = x,
-				y = y
-			},
+			{mapId = mapId, x = x, y = y},
 			mapPoint
 		})
 	end

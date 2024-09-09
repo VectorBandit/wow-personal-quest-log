@@ -12,7 +12,7 @@
 ## TESTX-WoWI-ID: 26696
 
 ## SavedVariables: PersonalQuestLogDB
-## OptionalDeps: Ace3
+## OptionalDeps: Ace3, TomTom
 ## DefaultState: enabled
 
 Source\Manifest.xml

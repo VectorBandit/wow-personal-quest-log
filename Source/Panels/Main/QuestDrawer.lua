@@ -101,6 +101,10 @@ function PQL.main.QuestDrawer:SetupFields()
 			local t = d.inner.fields.notes.editBox.editBox:GetText()
 
 			return PQLString.insert(t, itemLink, c)
+		end,
+		FilterMapLinkWaypointText = function(areaName)
+			if d.questData.questTitle:trim() == "" then return areaName end
+			return string.format("%s\n(%s)", d.questData.questTitle, areaName)
 		end
     }, d.inner.fields.title.editBox)
 
