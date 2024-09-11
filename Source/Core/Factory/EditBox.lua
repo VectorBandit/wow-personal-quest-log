@@ -34,7 +34,7 @@ function PQLFactory.EditBox:Create(parent, params)
         color = {1, 1, 1, 0.7}
     })
 
-	function editBoxWrapper:_UpdateDisplayValue(show)
+	function editBoxWrapper:SetDisplayValue(show)
 		if show then
 			local value = self:GetValue()
 			local displayValue = value
@@ -45,50 +45,43 @@ function PQLFactory.EditBox:Create(parent, params)
 
 			editBoxWrapper.editBox.displayValue:SetText(displayValue)
 
-			PQLSetFont(editBoxWrapper.editBox, { size = 12, color = {1, 1, 1, 0} })
-			editBoxWrapper.editBox.displayValue:Show()
+			if value:trim():len() > 0 then
+				PQLSetFont(editBoxWrapper.editBox, { size = 12, color = {1, 1, 1, 0} })
+				editBoxWrapper.editBox.displayValue:Show()
+				editBoxWrapper.editBox.placeholder:Hide()
+			else
+				PQLSetFont(editBoxWrapper.editBox, { size = 12 })
+				editBoxWrapper.editBox.displayValue:Hide()
+				editBoxWrapper.editBox.placeholder:Show()
+			end
 		else
 			PQLSetFont(editBoxWrapper.editBox, { size = 12 })
 			editBoxWrapper.editBox.displayValue:Hide()
+			editBoxWrapper.editBox.placeholder:Hide()
 		end
 	end
 
 	function editBoxWrapper:GetValue()
-		return editBoxWrapper.editBox:GetText():trim()
+		return editBoxWrapper.editBox:GetText()
 	end
 
 	function editBoxWrapper:SetValue(value)
 		editBoxWrapper.editBox:SetText(value)
-		editBoxWrapper:_UpdateDisplayValue(true)
+		editBoxWrapper:SetDisplayValue(true)
 	end
 
 	-- Tooltip
 	editBoxWrapper.editBox:SetScript("OnEnter", function()
-        if params.tooltipTitle or params.tooltipBody then
-			PQLAttachTooltip(editBoxWrapper.editBox)
-
-            if params.tooltipTitle then
-                GameTooltip:AddLine(params.tooltipTitle)
-            end
-
-            if params.tooltipBody then
-                if type(params.tooltipBody) == "function" then
-                    params.tooltipBody()
-                else
-                    GameTooltip:AddLine(params.tooltipBody, 0.9, 0.9, 0.9, true)
-                end
-            end
-
-			GameTooltip:Show()
-        end
+		if params.tooltip then PQLShowTooltip(params.tooltip, editBoxWrapper.editBox) end
 	end)
 
 	editBoxWrapper.editBox:SetScript("OnLeave", function()
 		GameTooltip:Hide()
 	end)
 
+	-- Hyperlinks
 	editBoxWrapper.editBox:SetScript("OnHyperlinkEnter", function(_, link)
-		PQLAttachTooltip(editBoxWrapper.editBox)
+		PQLAnchorTooltip(editBoxWrapper.editBox)
 		GameTooltip:SetHyperlink(link)
 		GameTooltip:Show()
 	end)
@@ -100,20 +93,24 @@ function PQLFactory.EditBox:Create(parent, params)
 	editBoxWrapper.editBox:SetScript("OnHyperlinkClick", function(_, link, _, button)
 		local linkType = PQL_Data.Links:GetType(link)
 
-		if button == "LeftButton" and linkType == "item" and IsControlKeyDown() then
-			local itemId = PQL_Data.Links:GetItemId(link)
-			if itemId and C_Item.IsDressableItemByID(itemId) then DressUpVisual(link) end
+		if button == "LeftButton" then
+			if linkType == "item" and IsControlKeyDown() then
+				local itemId = PQL_Data.Links:GetItemId(link)
+				if itemId and C_Item.IsDressableItemByID(itemId) then DressUpVisual(link) end
+			else
+				editBoxWrapper.editBox:SetFocus()
+			end
 		elseif button == "RightButton" and linkType == "map" then
 			local _, point = PQL_Data.Links:GetMapPointInfo(link)
 			if not point then return end
 			PQL.dropdown:Open({
 				{
-					text = "Add WoW waypoint",
-					callback = function() C_Map.SetUserWaypoint(point) end
+					text = "Add WoW Waypoint",
+					OnClick = function() C_Map.SetUserWaypoint(point) end
 				},
 				{
-					text = "Add TomTom waypoint",
-					callback = function()
+					text = "Add TomTom Waypoint",
+					OnClick = function()
 						local mapInfo = C_Map.GetMapInfo(point.uiMapID)
 						local waypointText = mapInfo.name
 
@@ -135,28 +132,36 @@ function PQLFactory.EditBox:Create(parent, params)
 		end
 	end)
 
-	-- Scripts
+	-- Focus
 	editBoxWrapper.editBox:SetScript("OnEditFocusGained", function()
 		PQL._focusedEditBox = editBoxWrapper.editBox
-		editBoxWrapper:_UpdateDisplayValue(false)
+		editBoxWrapper:SetDisplayValue(false)
 	end)
 
 	editBoxWrapper.editBox:SetScript("OnEditFocusLost", function()
 		PQL._focusedEditBox = nil
+		editBoxWrapper:SetDisplayValue(true)
+	end)
 
+	-- On Change
+	editBoxWrapper.editBox:SetScript("OnTextChanged", function()
 		local value = editBoxWrapper:GetValue()
 
 		if params.FilterValue then
 			value = params.FilterValue(value)
 		end
 
-		-- Update the value.
-		editBoxWrapper:SetValue(value)
-
 		if params.OnChanged then
 			params.OnChanged(value)
 		end
 	end)
+
+	-- Enter Key
+    editBoxWrapper.editBox:SetScript("OnEnterPressed", function(_, key)
+		if not editBoxWrapper.editBox:IsMultiLine() or IsControlKeyDown() then
+			editBoxWrapper.editBox:ClearFocus()
+		end
+    end)
 
 	-- Modified Item Click
 	editBoxWrapper.editBox.OnModifiedItemClick = function(itemId, itemLink)
@@ -174,7 +179,7 @@ function PQLFactory.EditBox:Create(parent, params)
 	end
 
 	-- Initialize the display value
-	editBoxWrapper:_UpdateDisplayValue(true)
+	editBoxWrapper:SetDisplayValue(true)
 
     return editBoxWrapper
 end

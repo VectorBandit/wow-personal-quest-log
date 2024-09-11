@@ -20,7 +20,7 @@ function PQLFactory.Panel:Create(name, params)
     function panel:FactoryInit()
 		panel.isOpen = true
 
-		PQLNineSlice(panel, "Dialog")
+		PQLNineSlice(panel, "Frame")
 
 		panel:SetFrameStrata("HIGH")
 		panel:SetMovable(true)
@@ -30,7 +30,7 @@ function PQLFactory.Panel:Create(name, params)
 
 		-- Add inner area
 		PQLFactory.ScrollFrame:Create(panel, {
-			yOffset = -45,
+			yOffset = -34,
 			width = params.size[1]
 		})
 

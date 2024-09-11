@@ -8,7 +8,7 @@ function PQL.confirmationPopup:Init()
     c:SetPoint("CENTER")
     c:Hide()
 
-	PQLNineSlice(c, "Dialog")
+	PQLNineSlice(c, "Frame")
 
     c.confirmed = false
 
@@ -16,18 +16,11 @@ function PQL.confirmationPopup:Init()
 	PQLSetFont(c.title, {})
 	c.title:SetPoint("CENTER", c, "TOP", 0, -24)
 
-	c.titleBorder = c:CreateTexture(nil, "BORDER")
-	c.titleBorder:SetHeight(1)
-	c.titleBorder:SetPoint("BOTTOMLEFT", c, "TOPLEFT", 1, -46)
-	c.titleBorder:SetPoint("RIGHT")
-	c.titleBorder:SetTexture(PQLArt("Border.png"))
-
     c.cancelButton = PQLFactory.Button:CreateButton(c, {
         text = "Cancel",
-        style = "negative",
         width = 60,
         anchor = {"BOTTOMLEFT", c, "BOTTOMLEFT", 11, 11},
-        callback = function()
+        OnClick = function()
             c.confirmed = false
             c:Close()
         end
@@ -35,10 +28,9 @@ function PQL.confirmationPopup:Init()
 
     c.confirmButton = PQLFactory.Button:CreateButton(c, {
         text = "Yes",
-        style = "positive",
         width = 60,
         anchor = {"BOTTOMRIGHT", c, "BOTTOMRIGHT", -11, 11},
-        callback = function()
+        OnClick = function()
             c.confirmed = true
             c:Close()
         end
@@ -70,15 +62,11 @@ function PQL.confirmationPopup:Open(params)
 end
 
 function PQL.confirmationPopup:Close()
-    if c.confirmed then
-        if c['confirmCallback'] then
-            c.confirmCallback()
-        end
-    else
-        if c['cancelCallback'] then
-            c.cancelCallback()
-        end
-    end
+	if c.confirmed and c.confirmCallback then
+		c.confirmCallback()
+	elseif c.cancelCallback then
+		c.cancelCallback()
+	end
 
 	c:Hide()
 end

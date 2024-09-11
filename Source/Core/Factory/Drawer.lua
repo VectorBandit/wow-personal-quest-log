@@ -6,33 +6,30 @@ function PQLFactory.Drawer:Create(name, params)
 	function d:FactoryInit()
 		d:SetWidth(500)
 
-		PQLNineSlice(d, "Dialog")
+		PQLNineSlice(d, "Frame")
 		PQLSetPoints(d, {
-			{"TOPLEFT", PQL.main, "TOPRIGHT"},
+			{"TOPLEFT", PQL.main, "TOPRIGHT", 2, 0},
 			{"BOTTOMLEFT", PQL.main, "BOTTOMRIGHT"}
 		})
 
 		-- Tongue Button
 		d.tongueButton = PQLFactory.Button:CreateIconButton(d, {
-			callback = function() d:Close() end,
-			icon = "Special-DrawerTongue",
+			OnClick = function() d:Close() end,
+			icon = "ChevronLeft",
 			anchor = { "LEFT", d, "RIGHT", 0, 0 },
 			size = 32
 		})
 
+		-- Drawer Title
+		d.title = d:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+		PQLSetFont(d.title, { size = 18, text = params.title })
+		d.title:SetPoint("LEFT", self, "TOPLEFT", 20, -32)
+
 		-- Scroll Frame
 		PQLFactory.ScrollFrame:Create(d, {
 			width = 500,
-			inset = 24
-		})
-
-		-- Drawer Title
-		d.inner.title = d.inner:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-		d.inner.title:SetPoint("TOPLEFT")
-
-		PQLSetFont(d.inner.title, {
-			size = 18,
-			text = params.title
+			inset = 20,
+			yOffset = -44,
 		})
 
 		-- Run custom initialize function

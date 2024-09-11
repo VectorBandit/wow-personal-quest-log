@@ -11,7 +11,7 @@ function PQL:OnInitialize()
     PQL_DB:Init()
     PQL_Core:Init()
 
-    -- self:SetupDebuggingTools()
+    self:SetupDebuggingTools()
 
     self.confirmationPopup:Init()
 	self.dropdown:Init()
@@ -70,7 +70,7 @@ function PQL:SetupDebuggingTools()
         width = 100,
         text = "Reload",
         anchor = { "TOP", UIParent, "TOP", 0, -10 },
-        callback = function() ReloadUI() end
+        OnClick = function() ReloadUI() end
     })
 end
 

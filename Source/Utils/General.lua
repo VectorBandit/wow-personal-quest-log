@@ -24,9 +24,43 @@ function PQLSetPoints(frame, points)
     end
 end
 
-function PQLAttachTooltip(anchorTo)
+function PQLAnchorTooltip(anchorTo)
 	GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
 	GameTooltip:ClearAllPoints()
 	GameTooltip:SetPoint("BOTTOMRIGHT", anchorTo, "TOPLEFT", -5, 5)
+end
+
+function PQLShowTooltip(tooltip, anchorTo)
+	if anchorTo then PQLAnchorTooltip(anchorTo) end
+
+	if tooltip.title then
+		if type(tooltip.title) == "function" then
+			tooltip.title = tooltip.title()
+		end
+
+		if type(tooltip.title) == "string" then
+			GameTooltip:AddLine(tooltip.title)
+		end
+	end
+
+	if tooltip.body then
+		if type(tooltip.body) == "function" then
+			tooltip.body = tooltip.body()
+		end
+		
+		if type(tooltip.body) == "table" then
+			for _, line in ipairs(tooltip.body) do
+				if type(line) == "string" then
+					line = {line, 0.9, 0.9, 0.9, true}
+				end
+
+				GameTooltip:AddLine(unpack(line))
+			end
+		elseif type(tooltip.body) == "string" then
+			GameTooltip:AddLine(tooltip.body, 0.9, 0.9, 0.9, true)
+		end
+	end
+
+	GameTooltip:Show()
 end
 

@@ -7,11 +7,11 @@ local d = PQL.main.QuestDrawer
 function PQL.main.QuestDrawer:Init()
 
 	-- Create the "Move" button
-	d.inner.moveButton = PQLFactory.Button:CreateIconButton(d.inner, {
+	d.moveButton = PQLFactory.Button:CreateIconButton(d, {
 		icon = "Move",
-		anchor = {"TOPRIGHT", d.inner, -72, 0},
-		tooltipTitle = "Move Quest",
-		callback = function()
+		anchor = {"TOPRIGHT", d, -88, -20},
+		tooltip = {title = "Move Quest"},
+		OnClick = function()
 			local options = PQL_DB.Groups:GetAsDropdownOptions(function(group)
 				PQL_DB.Quests:Update(d.questData.questId, "groupId", group.groupId)
 			end)
@@ -21,21 +21,21 @@ function PQL.main.QuestDrawer:Init()
 	})
 
 	-- Create the "Toggle Visibility" button
-	d.inner.visibilityButton = PQLFactory.Button:CreateIconButton(d.inner, {
+	d.visibilityButton = PQLFactory.Button:CreateIconButton(d, {
 		icon = "VisibleOn",
-		anchor = {"TOPRIGHT", d.inner, -36, 0},
-		tooltipTitle = "Toggle Quest Visibility",
-		callback = function()
+		anchor = {"TOPRIGHT", d, -54, -20},
+		tooltip = {title = "Toggle Quest Visibility"},
+		OnClick = function()
 			PQL_DB.Quests:Update(d.questData.questId, "isVisible", not d.questData.isVisible)
 		end
 	})
 
     -- Create the "Delete" button
-    d.inner.deleteButton = PQLFactory.Button:CreateIconButton(d.inner, {
+    d.deleteButton = PQLFactory.Button:CreateIconButton(d, {
         icon = "Delete",
-        anchor = {"TOPRIGHT"},
-        tooltipTitle = "Delete Quest",
-        callback = function()
+        anchor = {"TOPRIGHT", d, -20, -20},
+        tooltip = {title = "Delete Quest"},
+        OnClick = function()
             PQL.confirmationPopup:Open({
                 OnConfirm = function()
 					if d.questData then
@@ -51,11 +51,10 @@ function PQL.main.QuestDrawer:Init()
     d:SetupGoalsRegion()
 
 	PQL_DB:On("Quests.Updated", function()
-		if not d.isOpen then return end
-		d:UpdateFields()
+		d:UpdateVisibilityButton()
 	end)
 
-	PQL_DB:On("Goals.Updated", function()
+	PQL_DB:On("Goals.Updated.DeepOnly", function()
 		if not d.isOpen then return end
 		d.inner.goals:Populate()
 	end)
@@ -85,7 +84,7 @@ function PQL.main.QuestDrawer:SetupFields()
     d.inner.fields.title = PQLFactory.EditBox:CreateField(d.inner, "Quest Title", {
         placeholder = "Enter title",
         OnChanged = function(value)
-			PQL_DB.Quests:Update(d.questData.questId, "questTitle", value:trim())
+			PQL_DB.Quests:Update(d.questData.questId, "questTitle", value)
         end
     }, d.inner.title, -24)
 
@@ -94,7 +93,7 @@ function PQL.main.QuestDrawer:SetupFields()
         placeholder = "Enter notes",
         multiline = true,
         OnChanged = function(value)
-			PQL_DB.Quests:Update(d.questData.questId, "questNotes", value:trim())
+			PQL_DB.Quests:Update(d.questData.questId, "questNotes", value)
         end,
 		FilterModifiedItemClick = function(_, itemLink)
 			local c = d.inner.fields.notes.editBox.editBox:GetCursorPosition()
@@ -141,7 +140,7 @@ function PQL.main.QuestDrawer:SetupGoalsRegion()
             {"TOPLEFT", d.inner.goalsRegion, "BOTTOMLEFT", 0, -12},
             {"RIGHT"}
         },
-        callback = function()
+        OnClick = function()
             PQL_DB.Goals:Create(d.questData.questId)
         end
     })
@@ -154,10 +153,7 @@ function PQL.main.QuestDrawer:UpdateFields()
     local quest = PQL_DB.Quests:Get(d.questId)
     d.questData = quest or {}
 
-	-- Update the visibility button
-	d.inner.visibilityButton:Update({
-		icon = d.questData.isVisible and "VisibleOn" or "VisibleOff"
-	})
+	d:UpdateVisibilityButton()
 
 	-- Update fields
     if quest then
@@ -170,6 +166,13 @@ function PQL.main.QuestDrawer:UpdateFields()
 
 	-- Update goals
     d.inner.goals:Populate()
+end
+
+function PQL.main.QuestDrawer:UpdateVisibilityButton()
+	d.visibilityButton:Update({
+		icon = d.questData.isVisible and "VisibleOn" or "VisibleOff",
+		style = d.questData.isVisible and "" or "Transparent",
+	})
 end
 
 -------------------------------------------------------------------------------
@@ -185,28 +188,31 @@ PQL.main.QuestDrawer.goalsActions = {
         local goalFrame = CreateFrame("Frame", nil, parent)
         goalFrame:SetHeight(24)
 
-        goalFrame.goalTypeButton = PQLFactory.Button:CreateButton(goalFrame, {
+		goalFrame.goalTypeButton = PQLFactory.Button:CreateButton(goalFrame, {
             width = 70,
-            anchor = {{"TOPLEFT"}},
-            isCustomStates = true,
-            tooltipTitle = "Goal Type",
-            tooltipBody = function()
-                GameTooltip:AddLine("Double-click to change.", 1, 1, 1, true)
-                GameTooltip:AddLine("[Custom]", 0.463, 1, 0.902, true)
-                GameTooltip:AddLine("- A simple goal you can track by manually completing it.", 1, 1, 1, true)
-                GameTooltip:AddLine("[Item]", 1, 0.459, 1, true)
-                GameTooltip:AddLine("- Track a certain amount of an item.", 1, 1, 1, true)
-                GameTooltip:AddLine("[Currency]", 0.855, 1, 0.459, true)
-                GameTooltip:AddLine("- Track a certain amount of a currency.", 1, 1, 1, true)
-            end,
-            isDoubleClick = true,
-            callback = function()
-                local currentGoalType = goalFrame.entryData.goalType
-                local newGoalType = currentGoalType + 1
-                if newGoalType > #PQL_DB.Goals.CONST.goalTypes then newGoalType = 1 end
-				PQL_DB.Goals:Update(goalFrame.entryData.goalId, "goalType", newGoalType)
-            end
-        })
+            anchor = {"TOPLEFT"},
+			style = "Custom",
+            tooltip = {
+				title = "Goal Type",
+				body = "[Right-Click] to change.",
+			},
+			OnRightClick = function()
+				PQL.dropdown:Open({
+					{
+						text = "Custom",
+						OnClick = function() PQL_DB.Goals:Update(goalFrame.entryData.goalId, "goalType", 1) end
+					},
+					{
+						text = "Item",
+						OnClick = function() PQL_DB.Goals:Update(goalFrame.entryData.goalId, "goalType", 2) end
+					},
+					{
+						text = "Currency",
+						OnClick = function() PQL_DB.Goals:Update(goalFrame.entryData.goalId, "goalType", 3) end
+					},
+				})
+			end
+		})
 
         -- Fields
         goalFrame.fields = CreateFrame("Frame", nil, goalFrame)
@@ -222,7 +228,7 @@ PQL.main.QuestDrawer.goalsActions = {
         goalFrame.deleteButton = PQLFactory.Button:CreateIconButton(goalFrame, {
             icon = "Delete",
             anchor = {"TOPRIGHT"},
-            callback = function()
+            OnClick = function()
                 PQL.confirmationPopup:Open({
                     OnConfirm = function()
                         PQL_DB.Goals:Delete(goalFrame.entryData.goalId)
@@ -263,17 +269,19 @@ function PQL.main.QuestDrawer:CreateGoalFieldTabs(goalFrame)
 	local tabs = {}
 
 	-- Fields (Goal Type: Custom)
-	tabs[1] = CreateFrame("Frame", nil, goalFrame.fields)
-	tabs[1]:SetAllPoints(goalFrame.fields)
+	local t1 = CreateFrame("Frame", nil, goalFrame.fields)
+	t1:SetAllPoints(goalFrame.fields)
 
-	tabs[1].description = PQLFactory.EditBox:Create(tabs[1], {
+	t1.description = PQLFactory.EditBox:Create(t1, {
 		placeholder = "Description",
 		OnChanged = function(value)
-			PQL_DB.Goals:Update(goalFrame.entryData.goalId, "description", value:trim(), true)
+			PQL_DB.Goals:Update(goalFrame.entryData.goalId, "description", value, true, true)
 		end
 	})
 
-	PQLSetPoints(tabs[1].description, {{"TOPLEFT"}, {"TOPRIGHT"}})
+	PQLSetPoints(t1.description, {{"TOPLEFT"}, {"TOPRIGHT"}})
+
+	tabs[1] = t1
 
 	-- Fields (Goal Type: Item)
 	tabs[2] = CreateFrame("Frame", nil, goalFrame.fields)
@@ -281,14 +289,16 @@ function PQL.main.QuestDrawer:CreateGoalFieldTabs(goalFrame)
 
 	tabs[2].resourceId = PQLFactory.EditBox:Create(tabs[2], {
 		placeholder = "Item ID",
-		tooltipTitle = "Item ID",
-		tooltipBody = "Paste item ID here, or shift-click an item from your bag or a vendor.",
+		tooltip = {
+			title = "Item ID",
+			body = "Paste item ID here, or shift-click an item from your bag or a vendor.",
+		},
 		OnChanged = function(value)
-			PQL_DB.Goals:Update(goalFrame.entryData.goalId, "resourceId", value, true)
+			PQL_DB.Goals:Update(goalFrame.entryData.goalId, "resourceId", value, true, true)
 		end,
 		FilterDisplayValue = function(value)
 			if not value or value:trim() == "" then return "" end
-			local _, itemLink = GetItemInfo(value)
+			local _, itemLink = C_Item.GetItemInfo(value)
 			return itemLink or value.." (Invalid ID)"
 		end,
 		FilterModifiedItemClick = function(itemId)
@@ -304,7 +314,7 @@ function PQL.main.QuestDrawer:CreateGoalFieldTabs(goalFrame)
 	tabs[2].requiredCount = PQLFactory.EditBox:Create(tabs[2], {
 		placeholder = "Count",
 		OnChanged = function(value)
-			PQL_DB.Goals:Update(goalFrame.entryData.goalId, "requiredCount", value, true)
+			PQL_DB.Goals:Update(goalFrame.entryData.goalId, "requiredCount", value, true, true)
 		end,
 		FilterValue = function(value)
 			local n = value:gsub("%D", "")
@@ -324,7 +334,7 @@ function PQL.main.QuestDrawer:CreateGoalFieldTabs(goalFrame)
 	tabs[3].resourceId = PQLFactory.EditBox:Create(tabs[3], {
 		placeholder = "Currency ID",
 		OnChanged = function(value)
-			PQL_DB.Goals:Update(goalFrame.entryData.goalId, "resourceId", value, true)
+			PQL_DB.Goals:Update(goalFrame.entryData.goalId, "resourceId", value, true, true)
 		end,
 		FilterDisplayValue = function(value)
 			if not value or value:trim() == "" then return "" end
@@ -341,7 +351,7 @@ function PQL.main.QuestDrawer:CreateGoalFieldTabs(goalFrame)
 	tabs[3].requiredCount = PQLFactory.EditBox:Create(tabs[3], {
 		placeholder = "Count",
 		OnChanged = function(value)
-			PQL_DB.Goals:Update(goalFrame.entryData.goalId, "requiredCount", value, true)
+			PQL_DB.Goals:Update(goalFrame.entryData.goalId, "requiredCount", value, true, true)
 		end,
 		FilterValue = function(value)
 			local n = value:gsub("%D", "")
@@ -352,6 +362,18 @@ function PQL.main.QuestDrawer:CreateGoalFieldTabs(goalFrame)
 	PQLSetPoints(tabs[3].requiredCount, {
 		{"TOPLEFT", goalFrame.fields, "TOPRIGHT", -100, 0},
 		{"TOPRIGHT"}
+	})
+
+	-- Fields (Goal Type: Unit)
+	tabs[4] = CreateFrame("Frame", nil, goalFrame.fields)
+	tabs[4]:SetAllPoints(goalFrame.fields)
+
+	tabs[4].resourceId = PQLFactory.EditBox:Create(tabs[4], {
+		placeholder = "Unit ID",
+		OnChanged = function(value)
+		end,
+		FilterDisplayValue = function(value)
+		end
 	})
 
 	return tabs

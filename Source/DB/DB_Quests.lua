@@ -66,7 +66,7 @@ function PQL_DB.Quests:Create(groupId, data)
 	return quest
 end
 
-function PQL_DB.Quests:Update(questId, prop, value, isDetail)
+function PQL_DB.Quests:Update(questId, prop, value, isDetail, isShallow)
 	local quest = self:Get(questId)
 	if not quest then return end
 	local previousGroupId = quest.groupId -- Used for resetting order later.
@@ -84,6 +84,10 @@ function PQL_DB.Quests:Update(questId, prop, value, isDetail)
 	end
 
 	PQL_DB:Fire("Quests.Updated")
+
+	if not isShallow then
+		PQL_DB:Fire("Quests.Updated.DeepOnly")
+	end
 end
 
 function PQL_DB.Quests:Reorder(questId, direction)

@@ -68,7 +68,7 @@ PQL_Data.Items = {
 function PQL_Data.Items:ShowTooltip(id, anchorTo)
 	self:Get(id, function(item)
 		if item then
-			if anchorTo then PQLAttachTooltip(anchorTo) end
+			if anchorTo then PQLAnchorTooltip(anchorTo) end
 			GameTooltip:SetHyperlink(item.link)
 			GameTooltip:Show()
 		end
@@ -76,7 +76,7 @@ function PQL_Data.Items:ShowTooltip(id, anchorTo)
 end
 
 function PQL_Data.Items:Get(id, callback)
-	if not id then callback(nil) end
+	if not id or id == "" then callback(nil) end
 
 	local itemName, itemLink = C_Item.GetItemInfo(id)
 
@@ -129,7 +129,7 @@ function PQL_Data.Currencies:ShowTooltip(id, anchorTo)
 	local currency = self:Get(id)
 
 	if currency then
-		if anchorTo then PQLAttachTooltip(anchorTo) end
+		if anchorTo then PQLAnchorTooltip(anchorTo) end
 		GameTooltip:SetHyperlink(currency.link)
 		GameTooltip:Show()
 	end

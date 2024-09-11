@@ -30,7 +30,7 @@ function PQL_DB.Groups:GetAsDropdownOptions(callback)
 
 		table.insert(options, {
 			text = title,
-			callback = function() callback(group) end
+			OnClick = function() callback(group) end
 		})
 	end
 

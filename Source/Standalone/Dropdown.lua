@@ -12,7 +12,7 @@ function PQL.dropdown:Init()
 	d.popup = CreateFrame("Frame", "PQLDropdownPopup", d)
 	d.popup:SetFrameStrata("FULLSCREEN_DIALOG")
 	d.popup:SetSize(96, 100)
-	PQLNineSlice(d.popup, "Frame_Filled")
+	PQLNineSlice(d.popup, "Frame-Alt")
 
 	d.popup.list = {}
 	d.popup.toolbar = {}
@@ -62,11 +62,13 @@ function PQL.dropdown:Open(list, toolbar)
 		for i, item in ipairs(toolbar) do
 			item.anchor = {"TOPRIGHT", d.popup, "TOPRIGHT", -(24 * (i - 1)), 0}
 
-			local cb = item.callback
-			item.callback = function()
+			local cb = item.OnClick
+			item.OnClick = function()
 				d:Close()
 				cb()
 			end
+
+			item.style = "Transparent"
 
 			if not d.popup.toolbar[i] then
 				d.popup.toolbar[i] = PQLFactory.Button:CreateIconButton(d.popup, item)
@@ -90,14 +92,14 @@ function PQL.dropdown:Open(list, toolbar)
 				{"RIGHT", d.popup}
 			}
 
-			local cb = item.callback
-			item.callback = function()
+			local cb = item.OnClick
+			item.OnClick = function()
 				d:Close()
 				cb()
 			end
 
 			item.justify = "LEFT"
-			item.style = "text-default"
+			item.style = "Transparent"
 
 			if not d.popup.list[i] then
 				d.popup.list[i] = PQLFactory.Button:CreateButton(d.popup, item)
@@ -116,9 +118,8 @@ function PQL.dropdown:Open(list, toolbar)
 	end
 
 	-- Clamp the width
-	if width > 250 then
-		width = 250
-	end
+	if width < 96 then width = 96 end
+	if width > 250 then width = 250 end
 
 	d.popup:SetWidth(width)
 end

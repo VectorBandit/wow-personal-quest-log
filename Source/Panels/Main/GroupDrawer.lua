@@ -7,11 +7,11 @@ local d = PQL.main.GroupDrawer
 function PQL.main.GroupDrawer:Init()
 
     -- Create the "Delete" button
-    d.inner.deleteButton = PQLFactory.Button:CreateIconButton(d.inner, {
+    d.deleteButton = PQLFactory.Button:CreateIconButton(d, {
         icon = "Delete",
-        anchor = {"TOPRIGHT"},
-        tooltipTitle = "Delete Group",
-        callback = function()
+        anchor = {"TOPRIGHT", d, -20, -20},
+        tooltip = {title = "Delete Group"},
+        OnClick = function()
             PQL.confirmationPopup:Open({
                 OnConfirm = function()
 					if d.groupData then
@@ -52,7 +52,7 @@ function PQL.main.GroupDrawer:Init()
     d:SetupFields()
 	d:SetupQuestsRegion()
 
-	PQL_DB:On("Quests.Updated", function() d.inner.quests:Populate() end)
+	PQL_DB:On("Quests.Updated.DeepOnly", function() d.inner.quests:Populate() end)
 
     d:Close()
 end
@@ -79,7 +79,7 @@ function PQL.main.GroupDrawer:SetupFields()
     d.inner.fields.title = PQLFactory.EditBox:CreateField(d.inner, "Group Title", {
         placeholder = "Enter title",
         OnChanged = function(value)
-			PQL_DB.Groups:Update(d.groupData.groupId, "groupTitle", value:trim())
+			PQL_DB.Groups:Update(d.groupData.groupId, "groupTitle", value)
         end
     }, d.inner.title, -24)
 
@@ -88,7 +88,7 @@ function PQL.main.GroupDrawer:SetupFields()
         placeholder = "Enter notes",
         multiline = true,
         OnChanged = function(value)
-			PQL_DB.Groups:Update(d.groupData.groupId, "groupNotes", value:trim())
+			PQL_DB.Groups:Update(d.groupData.groupId, "groupNotes", value)
         end,
 		FilterModifiedItemClick = function(_, itemLink)
 			local c = d.inner.fields.notes.editBox.editBox:GetCursorPosition()
@@ -127,12 +127,11 @@ function PQL.main.GroupDrawer:SetupQuestsRegion()
 	-- Add New
 	d.inner.questsRegion.addButton = PQLFactory.Button:CreateButton(d.inner.questsRegion, {
 		text = "Add Quest",
-		width = 80,
 		anchor = {
 			{"TOPLEFT", d.inner.questsRegion, "BOTTOMLEFT", 0, -12},
 			{"RIGHT"}
 		},
-		callback = function()
+		OnClick = function()
 			PQL_DB.Quests:Create(d.groupData.groupId)
 		end
 	})
@@ -172,80 +171,89 @@ PQL.main.GroupDrawer.questsActions = {
 		-- Field: Quest Title
 		questFrame.questTitle = PQLFactory.EditBox:Create(questFrame, {
 			placeholder = "Enter title",
+			tooltip = {
+				title = "Quest",
+				body = function() return questFrame.questTitle.editBox:GetText() end,
+			},
 			OnChanged = function(value)
-				PQL_DB.Quests:Update(questFrame.entryData.questId, "questTitle", value)
+				PQL_DB.Quests:Update(questFrame.entryData.questId, "questTitle", value, false, true)
 			end
 		})
 
 		PQLSetPoints(questFrame.questTitle, {
 			{"TOPLEFT"},
-			{"TOPRIGHT", questFrame, "TOPRIGHT", -192, 0}
+			{"TOPRIGHT", questFrame, "TOPRIGHT", -102, 0}
 		})
 
 		-- Edit Button
 		questFrame.editButton = PQLFactory.Button:CreateIconButton(questFrame, {
 			icon = "Edit",
-			anchor = {"TOPRIGHT", questFrame, "TOPRIGHT", -160, 0},
-			tooltipTitle = "Edit Quest",
-			callback = function()
+			anchor = {"TOPRIGHT", questFrame, "TOPRIGHT", -68, 0},
+			tooltip = {title = "Edit Quest"},
+			OnClick = function()
 				PQL.main.QuestDrawer:Open(questFrame.entryData.questId)
-			end
-		})
-
-		-- Move Button
-		questFrame.moveButton = PQLFactory.Button:CreateIconButton(questFrame, {
-			icon = "Move",
-			anchor = {"TOPRIGHT", questFrame, "TOPRIGHT", -128, 0},
-			tooltipTitle = "Move Quest",
-			callback = function()
-				local options = PQL_DB.Groups:GetAsDropdownOptions(function(group)
-					PQL_DB.Quests:Update(questFrame.entryData.questId, "groupId", group.groupId)
-				end)
-
-				PQL.dropdown:Open(options)
 			end
 		})
 
 		-- Visibility Button
 		questFrame.visibilityButton = PQLFactory.Button:CreateIconButton(questFrame, {
 			icon = "VisibleOn",
-			anchor = {"TOPRIGHT", questFrame, "TOPRIGHT", -96, 0},
-			tooltipTitle = "Toggle Quest Visibility",
-			callback = function()
+			anchor = {"TOPRIGHT", questFrame, "TOPRIGHT", -34, 0},
+			tooltip = {title = "Toggle Quest Visibility"},
+			OnClick = function()
 				PQL_DB.Quests:Update(questFrame.entryData.questId, "isVisible", not questFrame.entryData.isVisible)
 			end
 		})
 
-		-- Move Up Button
-		questFrame.moveUpButton = PQLFactory.Button:CreateIconButton(questFrame, {
-			icon = "ArrowUp",
-			anchor = {"TOPRIGHT", questFrame, "TOPRIGHT", -64, 0},
-			tooltipTitle = "Move Up",
-			callback = function()
-				PQL_DB.Quests:Reorder(questFrame.entryData.questId, -1)
-			end
-		})
-
-		-- Move Down Button
-		questFrame.moveDownButton = PQLFactory.Button:CreateIconButton(questFrame, {
-			icon = "ArrowDown",
-			anchor = {"TOPRIGHT", questFrame, "TOPRIGHT", -32, 0},
-			tooltipTitle = "Move Down",
-			callback = function()
-				PQL_DB.Quests:Reorder(questFrame.entryData.questId, 1)
-			end
-		})
-
-		-- Delete Button
-		questFrame.deleteButton = PQLFactory.Button:CreateIconButton(questFrame, {
-			icon = "Delete",
+		-- Options
+		questFrame.optionsButton = PQLFactory.Button:CreateIconButton(questFrame, {
+			icon = "Dropdown",
 			anchor = {"TOPRIGHT"},
-			tooltipTitle = "Delete Quest",
-			callback = function()
-				PQL.confirmationPopup:Open({
-					OnConfirm = function()
-						PQL_DB.Quests:Delete(questFrame.entryData.questId)
-					end
+			tooltip = {title = "Options"},
+			OnClick = function()
+				PQL.dropdown:Open({
+					{
+						text = "Move quest",
+						OnClick = function()
+							local options = PQL_DB.Groups:GetAsDropdownOptions(function(group)
+								PQL_DB.Quests:Update(questFrame.entryData.questId, "groupId", group.groupId)
+							end)
+
+							PQL.dropdown:Open(options)
+						end
+					},
+				}, {
+					{
+						icon = "Delete",
+						tooltip = {title = "Delete Quest"},
+						OnClick = function()
+							PQL.confirmationPopup:Open({
+								OnConfirm = function()
+									PQL_DB.Quests:Delete(questFrame.entryData.questId)
+								end
+							})
+						end
+					},
+					{
+						icon = "ArrowDown",
+						tooltip = {title = "Move Down"},
+						OnClick = function()
+							PQL_DB.Quests:Reorder(questFrame.entryData.questId, 1)
+						end
+					},
+					{
+						icon = "ArrowUp",
+						tooltip = {title = "Move Up"},
+						OnClick = function()
+							PQL_DB.Quests:Reorder(questFrame.entryData.questId, -1)
+						end
+					},
+					{
+						icon = "Edit",
+						OnClick = function()
+							PQL.main.QuestDrawer:Open(questFrame.entryData.questId)
+						end
+					},
 				})
 			end
 		})
@@ -256,7 +264,8 @@ PQL.main.GroupDrawer.questsActions = {
 	Init = function(questFrame)
 		questFrame.questTitle:SetValue(questFrame.entryData.questTitle)
 		questFrame.visibilityButton:Update({
-			icon = questFrame.entryData.isVisible and "VisibleOn" or "VisibleOff"
+			icon = questFrame.entryData.isVisible and "VisibleOn" or "VisibleOff",
+			style = questFrame.entryData.isVisible and "" or "Transparent",
 		})
 	end
 }

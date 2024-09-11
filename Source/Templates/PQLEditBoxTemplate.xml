@@ -42,17 +42,6 @@
             <OnEscapePressed>
                 self:ClearFocus()
             </OnEscapePressed>
-            <OnTextChanged>
-                if self:GetText():trim():len() > 0 then
-                    self.placeholder:Hide()
-                else
-                    self.placeholder:Show()
-                end
-
-                if self["OnChanged"] then
-                    self:OnChanged(self:GetText():trim())
-                end
-            </OnTextChanged>
         </Scripts>
     </EditBox>
 </Ui>

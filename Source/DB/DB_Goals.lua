@@ -76,7 +76,7 @@ function PQL_DB.Goals:Create(questId, data)
     return goal
 end
 
-function PQL_DB.Goals:Update(goalId, prop, value, isDetail, silent)
+function PQL_DB.Goals:Update(goalId, prop, value, isDetail, isShallow)
 	local goal = self:Get(goalId)
 	if not goal then return end
 
@@ -86,7 +86,11 @@ function PQL_DB.Goals:Update(goalId, prop, value, isDetail, silent)
 		goal[prop] = value
 	end
 
-	if not silent then PQL_DB:Fire("Goals.Updated") end
+	PQL_DB:Fire("Goals.Updated")
+
+	if not isShallow then
+		PQL_DB:Fire("Goals.Updated.DeepOnly")
+	end
 end
 
 function PQL_DB.Goals:Delete(goalId)

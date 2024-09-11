@@ -59,7 +59,7 @@ function PQL_Core:CheckGoalsCompletion()
 				PQL_Data.Items:GetCount(details.resourceId) or
 				PQL_Data.Currencies:GetCount(details.resourceId)
 
-			PQL_DB.Goals:Update(goal.goalId, "currentCount", currentCount, true, true)
+			goal.goalDetails.currentCount = currentCount
 			isCompleted = requiredCount and currentCount and requiredCount > 0 and currentCount >= requiredCount
 		end
 
