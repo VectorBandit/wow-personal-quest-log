@@ -6,7 +6,7 @@ function PQL.main:Init()
         anchor = {"TOPLEFT", PQL.main, "TOPLEFT", 10, -10},
         tooltip = {title = "Create Group"},
         OnClick = function()
-            PQL.ENTITY.Group:Create():Edit()
+            PQL.ENTITY.GROUP:Create():Edit()
         end,
     })
 
@@ -186,7 +186,7 @@ end
 
 PQL.main.groupsActions = {
     FetchEntries = function()
-		return PQL.ENTITY.Group:All()
+		return PQL.ENTITY.GROUP:All()
     end,
 
     Create = function(parent)
@@ -204,7 +204,7 @@ PQL.main.groupsActions = {
 					{
 						text = "Add quest",
 						justify = "LEFT",
-						OnClick = function() PQL.ENTITY.Quest:Create(groupFrame.data:GetID()):Edit() end
+						OnClick = function() PQL.ENTITY.QUEST:Create(groupFrame.data:GetID()):Edit() end
 					},
 				}, {
 					{
@@ -285,7 +285,7 @@ PQL.main.groupsActions = {
 
 PQL.main.questsActions = {
     FetchEntries = function(groupID)
-		return PQL.ENTITY.Quest:ByGroup(groupID, true)
+		return PQL.ENTITY.QUEST:ByGroup(groupID, true)
     end,
 
     Create = function(parent)
@@ -306,7 +306,7 @@ PQL.main.questsActions = {
 					{
 						text = "Move quest",
 						OnClick = function()
-							local options = PQL.ENTITY.Group:AsDropdownOptions(function(group)
+							local options = PQL.ENTITY.GROUP:AsDropdownOptions(function(group)
 								questFrame.data:Move(group:GetID())
 							end)
 
@@ -400,7 +400,7 @@ PQL.main.questsActions = {
 
 PQL.main.goalsActions = {
     FetchEntries = function(questID)
-		return PQL.ENTITY.Goal:ByQuest(questID)
+		return PQL.ENTITY.GOAL:ByQuest(questID)
     end,
 
     Create = function(parent)

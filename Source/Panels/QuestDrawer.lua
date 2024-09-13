@@ -11,7 +11,7 @@ function PQL.main.QuestDrawer:Init()
 		anchor = {"TOPRIGHT", d, -88, -20},
 		tooltip = {title = "Move Quest"},
 		OnClick = function()
-			local options = PQL.ENTITY.Group:AsDropdownOptions(function(group)
+			local options = PQL.ENTITY.GROUP:AsDropdownOptions(function(group)
 				d.data:Move(group:GetID())
 			end)
 
@@ -146,7 +146,7 @@ function PQL.main.QuestDrawer:SetupGoalsRegion()
 			{"TOPLEFT", d.inner.goalsRegion, "BOTTOMLEFT", 0, -10},
 			{"RIGHT"}
 		},
-		OnClick = function() PQL.ENTITY.Goal:Create(d.data:GetID()) end,
+		OnClick = function() PQL.ENTITY.GOAL:Create(d.data:GetID()) end,
 	})
 
 	-- Reposition the scroll frame bottom gutter
@@ -154,7 +154,7 @@ function PQL.main.QuestDrawer:SetupGoalsRegion()
 end
 
 function PQL.main.QuestDrawer:UpdateFields()
-	d.data = PQL.ENTITY.Quest:ByID(d.questID)
+	d.data = PQL.ENTITY.QUEST:ByID(d.questID)
 
 	d:UpdateVisibilityButton()
 
@@ -177,7 +177,7 @@ end
 
 PQL.main.QuestDrawer.goalsActions = {
 	FetchEntries = function()
-		return PQL.ENTITY.Goal:ByQuest(d.questID)
+		return PQL.ENTITY.GOAL:ByQuest(d.questID)
 	end,
 
 	Create = function(parent)

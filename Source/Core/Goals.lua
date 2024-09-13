@@ -16,7 +16,7 @@ function PQL.GOALS:Init()
 	-- Process inventory-related goals when a goal is updated.
 	PQL.DATA:On("GOAL_UPDATED", function(...)
 		local _, goalID, _, key = ...
-		local goal = PQL.ENTITY.Goal:ByID(goalID)
+		local goal = PQL.ENTITY.GOAL:ByID(goalID)
 
 		if goal:IsType(PQL_GOALTYPE_ITEM) or goal:IsType(PQL_GOALTYPE_CURRENCY) then
 			if key == "requiredCount" or key == "resourceID" then
@@ -34,7 +34,7 @@ function PQL.GOALS:Init()
 end
 
 local function AppendGoalsToTooltip(tooltip, filterFn)
-	local quests = PQL.ENTITY.Quest:All()
+	local quests = PQL.ENTITY.QUEST:All()
 	local result = {}
 
 	for _, quest in ipairs(quests) do
@@ -121,7 +121,7 @@ function PQL.GOALS:ProcessInventoryDependentGoal(goal)
 end
 
 function PQL.GOALS:ProcessInventoryDependentGoals()
-	local goals = PQL.ENTITY.Goal:All()
+	local goals = PQL.ENTITY.GOAL:All()
 	for _, goal in pairs(goals) do
 		self:ProcessInventoryDependentGoal(goal)
 	end
@@ -139,7 +139,7 @@ function PQL.GOALS:ProcessCombatDependentGoals()
 	-- No reason to continue if none of these are true.
 	if not isDamageEvent and not isDeathEvent then return end
 
-	local goals = PQL.ENTITY.Goal:ByType(PQL_GOALTYPE_UNIT)
+	local goals = PQL.ENTITY.GOAL:ByType(PQL_GOALTYPE_UNIT)
 	for _, goal in ipairs(goals) do
 		if goal:GetNumber("unitID") == unitID then
 			local damagedUnits = goal:Get("damagedUnits", {})

@@ -1,4 +1,4 @@
-PQL.ENTITY.Goal = {}
+PQL.ENTITY.GOAL = {}
 
 local function BuildResourceCountText(e)
 	local required = e:Get("requiredCount", 0)
@@ -67,7 +67,7 @@ local function Instantiate(data)
 	end
 
 	function e:GetQuest()
-		return PQL.ENTITY.Quest:ByID(self:Get("questID"))
+		return PQL.ENTITY.QUEST:ByID(self:Get("questID"))
 	end
 
 	function e:IsType(type)
@@ -133,12 +133,12 @@ local function Instantiate(data)
 	return e
 end
 
-function PQL.ENTITY.Goal:Create(questID, data)
+function PQL.ENTITY.GOAL:Create(questID, data)
 	local goalID = PQL.DATA.GOALS:Create(questID, data)
 	return self:ByID(goalID)
 end
 
-function PQL.ENTITY.Goal:All()
+function PQL.ENTITY.GOAL:All()
 	local goals = PQL.DATA.GOALS:GetAll()
 	local result = {}
 
@@ -149,13 +149,13 @@ function PQL.ENTITY.Goal:All()
 	return result
 end
 
-function PQL.ENTITY.Goal:ByID(goalID)
+function PQL.ENTITY.GOAL:ByID(goalID)
 	local data = PQL.DATA.GOALS:Get(goalID)
 	if not data then return nil end
 	return Instantiate(data)
 end
 
-function PQL.ENTITY.Goal:ByType(type)
+function PQL.ENTITY.GOAL:ByType(type)
 	local goals = PQL.DATA.GOALS:GetByType(type)
 	local result = {}
 
@@ -166,7 +166,7 @@ function PQL.ENTITY.Goal:ByType(type)
 	return result
 end
 
-function PQL.ENTITY.Goal:ByQuest(questID)
+function PQL.ENTITY.GOAL:ByQuest(questID)
 	local goals = PQL.DATA.GOALS:GetByQuest(questID)
 	local result = {}
 

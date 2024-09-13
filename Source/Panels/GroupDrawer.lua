@@ -30,13 +30,13 @@ function PQL.main.GroupDrawer:Init()
 			local notes = "Item: "..merchantItem.link.."\n\n"
 			notes = notes.."Location: "..PQL.UTIL.LINK:MakePin()
 
-			local quest = PQL.ENTITY.Quest:Create(d.data:getID(), {
+			local quest = PQL.ENTITY.QUEST:Create(d.data:getID(), {
 				title = merchantItem.name,
 				notes = notes
 			})
 
 			for _, resource in ipairs(merchantItem.cost) do
-				PQL.ENTITY.Goal:Create(quest:GetID(), {
+				PQL.ENTITY.GOAL:Create(quest:GetID(), {
 					type = resource.type,
 					resourceID = resource.id,
 					requiredCount = resource.amount,
@@ -144,7 +144,7 @@ function PQL.main.GroupDrawer:SetupQuestsRegion()
 			{"TOPLEFT", d.inner.questsRegion, "BOTTOMLEFT", 0, -10},
 			{"RIGHT"}
 		},
-		OnClick = function() PQL.ENTITY.Quest:Create(d.data:GetID()) end,
+		OnClick = function() PQL.ENTITY.QUEST:Create(d.data:GetID()) end,
 	})
 
 	-- Reposition the scroll frame bottom gutter
@@ -152,7 +152,7 @@ function PQL.main.GroupDrawer:SetupQuestsRegion()
 end
 
 function PQL.main.GroupDrawer:UpdateFields()
-	d.data = PQL.ENTITY.Group:ByID(d.groupID)
+	d.data = PQL.ENTITY.GROUP:ByID(d.groupID)
 
 	d.inner.fields.title.editBox:SetValue(d.data and d.data:Get("title") or "")
 	d.inner.fields.notes.editBox:SetValue(d.data and d.data:Get("notes") or "")
@@ -166,7 +166,7 @@ end
 
 PQL.main.GroupDrawer.questsActions = {
 	FetchEntries = function()
-		return PQL.ENTITY.Quest:ByGroup(d.groupID)
+		return PQL.ENTITY.QUEST:ByGroup(d.groupID)
 	end,
 
 	Create = function(parent)
@@ -214,7 +214,7 @@ PQL.main.GroupDrawer.questsActions = {
 					{
 						text = "Move quest",
 						OnClick = function()
-							local options = PQL.ENTITY.Group:AsDropdownOptions(function(group)
+							local options = PQL.ENTITY.GROUP:AsDropdownOptions(function(group)
 								questFrame.data:Move(group:GetID())
 							end)
 

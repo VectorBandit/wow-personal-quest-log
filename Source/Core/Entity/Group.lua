@@ -1,4 +1,4 @@
-PQL.ENTITY.Group = {}
+PQL.ENTITY.GROUP = {}
 
 local function Instantiate(data)
 	local e = {data = data}
@@ -20,7 +20,7 @@ local function Instantiate(data)
 	end
 
 	function e:GetQuests()
-		return PQL.ENTITY.Quest:ByGroup(self:GetID())
+		return PQL.ENTITY.QUEST:ByGroup(self:GetID())
 	end
 
 	function e:IsCollapsed()
@@ -54,12 +54,12 @@ local function Instantiate(data)
 	return e
 end
 
-function PQL.ENTITY.Group:Create()
+function PQL.ENTITY.GROUP:Create()
 	local groupID = PQL.DATA.GROUPS:Create()
 	return self:ByID(groupID)
 end
 
-function PQL.ENTITY.Group:All()
+function PQL.ENTITY.GROUP:All()
 	local groups = PQL.DATA.GROUPS:GetAll()
 	local result = {}
 
@@ -70,7 +70,7 @@ function PQL.ENTITY.Group:All()
 	return result
 end
 
-function PQL.ENTITY.Group:AsDropdownOptions(onClickCallback)
+function PQL.ENTITY.GROUP:AsDropdownOptions(onClickCallback)
 	local groups = PQL.DATA.GROUPS:GetAll()
 	local result = {}
 
@@ -88,7 +88,7 @@ function PQL.ENTITY.Group:AsDropdownOptions(onClickCallback)
 	return result
 end
 
-function PQL.ENTITY.Group:ByID(groupID)
+function PQL.ENTITY.GROUP:ByID(groupID)
 	local data = PQL.DATA.GROUPS:Get(groupID)
 	if not data then return nil end
 	return Instantiate(data)

@@ -1,4 +1,4 @@
-PQL.ENTITY.Quest = {}
+PQL.ENTITY.QUEST = {}
 
 local function Instantiate(data)
 	local e = {data = data}
@@ -39,11 +39,11 @@ local function Instantiate(data)
 	end
 
 	function e:GetGroup()
-		return PQL.ENTITY.Group:ByID(self:Get("groupID"))
+		return PQL.ENTITY.GROUP:ByID(self:Get("groupID"))
 	end
 
 	function e:GetGoals()
-		return PQL.ENTITY.Goal:ByQuest(self:GetID())
+		return PQL.ENTITY.GOAL:ByQuest(self:GetID())
 	end
 
 	function e:IsVisible()
@@ -81,12 +81,12 @@ local function Instantiate(data)
 	return e
 end
 
-function PQL.ENTITY.Quest:Create(groupID, data)
+function PQL.ENTITY.QUEST:Create(groupID, data)
 	local questID = PQL.DATA.QUESTS:Create(groupID, data)
 	return self:ByID(questID)
 end
 
-function PQL.ENTITY.Quest:All()
+function PQL.ENTITY.QUEST:All()
 	local quests = PQL.DATA.QUESTS:GetAll()
 	local result = {}
 
@@ -97,13 +97,13 @@ function PQL.ENTITY.Quest:All()
 	return result
 end
 
-function PQL.ENTITY.Quest:ByID(questID)
+function PQL.ENTITY.QUEST:ByID(questID)
 	local data = PQL.DATA.QUESTS:Get(questID)
 	if not data then return nil end
 	return Instantiate(data)
 end
 
-function PQL.ENTITY.Quest:ByGroup(groupID, visibleOnly)
+function PQL.ENTITY.QUEST:ByGroup(groupID, visibleOnly)
 	local quests = PQL.DATA.QUESTS:GetByGroup(groupID, visibleOnly)
 	local result = {}
 
