@@ -24,14 +24,3 @@ function PQLSetFont(frame, params)
         frame:SetJustifyV(params.align)
     end
 end
-
-function PQLSetText(frame, text, fallback)
-	if not fallback then fallback = "[NO_TEXT]" end
-
-	if not text or text:trim() == "" then
-		frame:SetText(fallback)
-	else
-		frame:SetText(text)
-	end
-end
-
