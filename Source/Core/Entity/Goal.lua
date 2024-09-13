@@ -1,11 +1,8 @@
 PQL.ENTITY.GOAL = {}
 
 local function BuildResourceCountText(e)
-	local required = e:Get("requiredCount", 0)
-	required = tonumber(required) or 0
-
-	local current = e:Get("currentCount", 0)
-	current = tonumber(current) or 0
+	local required = e:GetNumber("requiredCount")
+	local current = e:GetNumber("currentCount")
 
 	-- NOTE: Clamping is disabled until the total amount of required
 	-- resources is shown in the Group display. This allows the player

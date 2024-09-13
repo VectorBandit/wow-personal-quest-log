@@ -70,7 +70,7 @@ function PQL.GOALS:ExtendUnitTooltip(tooltip)
 	AppendGoalsToTooltip(tooltip, function(goal)
 		return (
 			goal:IsType(PQL_GOALTYPE_UNIT) and
-			tonumber(goal:Get("unitID")) == unitID
+			goal:GetNumber("unitID") == unitID
 		)
 	end)
 end
@@ -82,7 +82,7 @@ function PQL.GOALS:ExtendItemTooltip(tooltip)
 	AppendGoalsToTooltip(tooltip, function(goal)
 		return (
 			goal:IsType(PQL_GOALTYPE_ITEM) and
-			tonumber(goal:Get("resourceID")) == itemID
+			goal:GetNumber("resourceID") == itemID
 		)
 	end)
 end
