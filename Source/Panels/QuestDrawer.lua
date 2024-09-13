@@ -5,6 +5,14 @@ PQL.main:AddDrawer("QuestDrawer")
 local d = PQL.main.QuestDrawer
 
 function PQL.main.QuestDrawer:Init()
+	-- Button: Edit Group
+	PQL.FACTORY.Button:CreateIconButton(d, {
+		icon = "Parent",
+		anchor = {"TOPRIGHT", d, -122, -20},
+		tooltip = {title = "Edit Group"},
+		OnClick = function() d.data:GetGroup():Edit() end
+	})
+
 	-- Button: Move
 	PQL.FACTORY.Button:CreateIconButton(d, {
 		icon = "Move",
