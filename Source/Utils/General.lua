@@ -2,10 +2,6 @@ function PQLPath(to)
     return "Interface\\Addons\\PersonalQuestLog\\"..to
 end
 
-function PQLArt(file)
-	return PQLPath("Art\\Themes\\"..PQL.db.profile.theme.."\\"..file)
-end
-
 function PQLPrepareForText(frame)
     frame:ClearAllPoints()
     frame:SetPoint("TOPLEFT")

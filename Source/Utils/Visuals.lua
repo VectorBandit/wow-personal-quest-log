@@ -1,3 +1,11 @@
+function PQLArt(file, themed)
+	if themed == nil then themed = true end
+
+	return themed and
+		PQLPath("Art\\Themes\\"..PQL.DATA:Get("theme").."\\"..file) or
+		PQLPath("Art\\"..file)
+end
+
 local nineSliceData = {
     tl = {
         {p = "TOPLEFT"},
@@ -46,15 +54,18 @@ local nineSliceData = {
     },
 }
 
-function PQLNineSlice(frame, file)
+function PQLNineSlice(frame, file, themed)
+	if themed == nil then themed = true end
+
     for slice, sliceData in pairs(nineSliceData) do
         if not frame[slice] then
             frame[slice] = frame:CreateTexture(nil, "BACKGROUND")
         end
 
-        frame[slice]:SetTexture(PQLArt("9Slice-"..file..".png"))
+        frame[slice]:SetTexture(PQLArt("9Slice-"..file..".png", themed))
         frame[slice]:SetTexCoord(unpack(sliceData[3]))
         frame[slice]:SetPoint(sliceData[1].p, frame, sliceData[1].rp or sliceData[1].p, sliceData[1].x or 0, sliceData[1].y or 0)
         frame[slice]:SetPoint(sliceData[2].p, frame, sliceData[2].rp or sliceData[2].p, sliceData[2].x or 0, sliceData[2].y or 0)
     end
 end
+
