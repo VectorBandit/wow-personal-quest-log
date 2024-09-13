@@ -1,4 +1,5 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <Script file="ConfirmPopup.lua" />
-    <Script file="Dropdown.lua" />
+    <Script file="Group.lua" />
+    <Script file="Quest.lua" />
+    <Script file="Goal.lua" />
 </Ui>

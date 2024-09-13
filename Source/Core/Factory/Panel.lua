@@ -1,6 +1,6 @@
-PQLFactory.Panel = {}
+PQL.FACTORY.Panel = {}
 
-function PQLFactory.Panel:Create(name, params)
+function PQL.FACTORY.Panel:Create(name, params)
     local panel = CreateFrame("Frame", "PQL_"..name, UIParent)
 	panel.modules = {}
 	panel.drawers = {}
@@ -29,7 +29,7 @@ function PQLFactory.Panel:Create(name, params)
 		panel:SetFlattensRenderLayers(true)
 
 		-- Add inner area
-		PQLFactory.ScrollFrame:Create(panel, {
+		PQL.FACTORY.ScrollFrame:Create(panel, {
 			yOffset = -34,
 			width = params.size[1]
 		})

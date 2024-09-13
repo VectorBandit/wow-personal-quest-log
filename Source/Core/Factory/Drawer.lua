@@ -1,6 +1,6 @@
-PQLFactory.Drawer = {}
+PQL.FACTORY.Drawer = {}
 
-function PQLFactory.Drawer:Create(name, params)
+function PQL.FACTORY.Drawer:Create(name, params)
 	local d = CreateFrame("Frame", name, PQL.main)
 
 	function d:FactoryInit()
@@ -8,12 +8,12 @@ function PQLFactory.Drawer:Create(name, params)
 
 		PQLNineSlice(d, "Frame")
 		PQLSetPoints(d, {
-			{"TOPLEFT", PQL.main, "TOPRIGHT", 2, 0},
+			{"TOPLEFT", PQL.main, "TOPRIGHT", 5, 0},
 			{"BOTTOMLEFT", PQL.main, "BOTTOMRIGHT"}
 		})
 
 		-- Tongue Button
-		d.tongueButton = PQLFactory.Button:CreateIconButton(d, {
+		d.tongueButton = PQL.FACTORY.Button:CreateIconButton(d, {
 			OnClick = function() d:Close() end,
 			icon = "ChevronLeft",
 			anchor = { "LEFT", d, "RIGHT", 0, 0 },
@@ -26,7 +26,7 @@ function PQLFactory.Drawer:Create(name, params)
 		d.title:SetPoint("LEFT", self, "TOPLEFT", 20, -32)
 
 		-- Scroll Frame
-		PQLFactory.ScrollFrame:Create(d, {
+		PQL.FACTORY.ScrollFrame:Create(d, {
 			width = 500,
 			inset = 20,
 			yOffset = -44,
@@ -51,6 +51,8 @@ function PQLFactory.Drawer:Create(name, params)
 	end
 
 	function d:Close()
+		if not d.isOpen then return end
+
 		d.isOpen = false
 		d:Hide()
 

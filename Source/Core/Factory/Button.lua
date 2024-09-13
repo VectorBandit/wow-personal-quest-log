@@ -1,12 +1,12 @@
-PQLFactory.Button = {}
+PQL.FACTORY.Button = {}
 
-function PQLFactory.Button:_HandleFactoryEvent(button, event)
+function PQL.FACTORY.Button:_HandleFactoryEvent(button, event)
 	if button.factoryEvents and button.factoryEvents[event] then
 		button.factoryEvents[event]()
 	end
 end
 
-function PQLFactory.Button:_SetSharedData(button)
+function PQL.FACTORY.Button:_SetSharedData(button)
 	self:_ApplyState(button, "Normal")
 
     if button.data.anchor then
@@ -15,7 +15,7 @@ function PQLFactory.Button:_SetSharedData(button)
     end
 end
 
-function PQLFactory.Button:_ApplyState(button, state)
+function PQL.FACTORY.Button:_ApplyState(button, state)
 	if button.data.style == "Custom" then return end
 	local file = button.data.style and button.data.style ~= "" and
 		string.format("Button-%s-%s", button.data.style, state) or
@@ -25,19 +25,19 @@ function PQLFactory.Button:_ApplyState(button, state)
 end
 
 -- This should not be called more than once on the same Button.
-function PQLFactory.Button:_SetSharedScripts(button, factoryEvents)
+function PQL.FACTORY.Button:_SetSharedScripts(button, factoryEvents)
     button:RegisterForClicks("AnyUp")
 
     button:SetScript("OnEnter", function()
 		self:_ApplyState(button, "Highlight")
 		if button.data.tooltip then PQLShowTooltip(button.data.tooltip, button) end
-		PQLFactory.Button:_HandleFactoryEvent(button, "OnEnter")
+		PQL.FACTORY.Button:_HandleFactoryEvent(button, "OnEnter")
     end)
 
     button:SetScript("OnLeave", function()
 		self:_ApplyState(button, "Normal")
         GameTooltip:Hide()
-		PQLFactory.Button:_HandleFactoryEvent(button, "OnLeave")
+		PQL.FACTORY.Button:_HandleFactoryEvent(button, "OnLeave")
     end)
 
 	button:SetScript("OnMouseDown", function()
@@ -65,8 +65,8 @@ end
 -- TEXT BUTTON
 -------------------------------------------------------------------------------
 
-function PQLFactory.Button:_SetButtonData(button)
-    PQLFactory.Button:_SetSharedData(button)
+function PQL.FACTORY.Button:_SetButtonData(button)
+    PQL.FACTORY.Button:_SetSharedData(button)
 
 	-- Width
 	button:SetWidth(button.data.width or 1000)
@@ -78,7 +78,7 @@ function PQLFactory.Button:_SetButtonData(button)
     if button.data.align then button.text:SetJustifyV(button.data.align) end
 end
 
-function PQLFactory.Button:CreateButton(parent, data)
+function PQL.FACTORY.Button:CreateButton(parent, data)
     local button = CreateFrame("Button", nil, parent)
 	button:SetSize(1, 24)
 	button.data = data
@@ -88,14 +88,14 @@ function PQLFactory.Button:CreateButton(parent, data)
 	PQLSetPoints(button.text, {{"TOPLEFT", 6, -6}, {"BOTTOMRIGHT", -6, 6}})
 
 	-- Data
-	PQLFactory.Button:_SetButtonData(button)
-	PQLFactory.Button:_SetSharedScripts(button) -- Only once
+	PQL.FACTORY.Button:_SetButtonData(button)
+	PQL.FACTORY.Button:_SetSharedScripts(button) -- Only once
 
 	function button:Update(data)
 		for key, value in pairs(data) do
 			button.data[key] = value
 		end
-		PQLFactory.Button:_SetButtonData(button)
+		PQL.FACTORY.Button:_SetButtonData(button)
 	end
 
     return button
@@ -105,12 +105,12 @@ end
 -- ICON BUTTON
 -------------------------------------------------------------------------------
 
-function PQLFactory.Button:_SetIconButtonData(button)
-    PQLFactory.Button:_SetSharedData(button)
+function PQL.FACTORY.Button:_SetIconButtonData(button)
+    PQL.FACTORY.Button:_SetSharedData(button)
 	button.icon:SetTexture(PQLArt("Icon-"..button.data.icon..".png"))
 end
 
-function PQLFactory.Button:CreateIconButton(parent, data)
+function PQL.FACTORY.Button:CreateIconButton(parent, data)
     local button = CreateFrame("button", nil, parent)
 	button:SetSize(data.size or 24, data.size or 24)
 	button.data = data
@@ -121,15 +121,15 @@ function PQLFactory.Button:CreateIconButton(parent, data)
 	button.icon:SetPoint("CENTER")
 
 	-- Data
-	PQLFactory.Button:_SetIconButtonData(button)
-	PQLFactory.Button:_SetSharedScripts(button) -- Only once
+	PQL.FACTORY.Button:_SetIconButtonData(button)
+	PQL.FACTORY.Button:_SetSharedScripts(button) -- Only once
 
 	function button:Update(data)
 		for key, value in pairs(data) do
 			button.data[key] = value
 		end
 
-		PQLFactory.Button:_SetIconButtonData(button)
+		PQL.FACTORY.Button:_SetIconButtonData(button)
 	end
 
 	return button

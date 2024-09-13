@@ -1,6 +1,6 @@
-PQLFactory.EditBox = {}
+PQL.FACTORY.EditBox = {}
 
-function PQLFactory.EditBox:_CreateFieldLabel(parent, text)
+function PQL.FACTORY.EditBox:_CreateFieldLabel(parent, text)
     local label = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     label:SetPoint("TOPLEFT", parent)
     PQLSetFont(label, {
@@ -10,16 +10,12 @@ function PQLFactory.EditBox:_CreateFieldLabel(parent, text)
     return label
 end
 
-function PQLFactory.EditBox:Create(parent, params)
+function PQL.FACTORY.EditBox:Create(parent, params)
     local editBoxWrapper = CreateFrame("Frame", nil, parent, "PQLEditBoxTemplate")
 
-    if params.width then
-        editBoxWrapper:SetWidth(params.width)
-    end
-
-    if params.height then
-        editBoxWrapper:SetHeight(params.height)
-    end
+    if params.width then editBoxWrapper:SetWidth(params.width) end
+    if params.height then editBoxWrapper:SetHeight(params.height) end
+	if params.anchor then PQLSetPoints(editBoxWrapper, params.anchor) end
 
     PQLSetFont(editBoxWrapper.editBox, { size = 12, justify = "LEFT" })
 	PQLSetFont(editBoxWrapper.editBox.displayValue, { size = 12, justify = "LEFT", align = "TOP" })
@@ -40,7 +36,8 @@ function PQLFactory.EditBox:Create(parent, params)
 			local displayValue = value
 
 			if params.FilterDisplayValue then
-				displayValue = params.FilterDisplayValue(displayValue)
+				local filteredDisplayValue = params.FilterDisplayValue(displayValue)
+				if filteredDisplayValue then displayValue = filteredDisplayValue end
 			end
 
 			editBoxWrapper.editBox.displayValue:SetText(displayValue)
@@ -65,9 +62,13 @@ function PQLFactory.EditBox:Create(parent, params)
 		return editBoxWrapper.editBox:GetText()
 	end
 
-	function editBoxWrapper:SetValue(value)
+	function editBoxWrapper:SetValue(value, triggerOnChange)
 		editBoxWrapper.editBox:SetText(value)
 		editBoxWrapper:SetDisplayValue(true)
+
+		if triggerOnChange and params.OnChanged then
+			params.OnChanged(editBoxWrapper:GetValue())
+		end
 	end
 
 	-- Tooltip
@@ -91,67 +92,78 @@ function PQLFactory.EditBox:Create(parent, params)
 	end)
 
 	editBoxWrapper.editBox:SetScript("OnHyperlinkClick", function(_, link, _, button)
-		local linkType = PQL_Data.Links:GetType(link)
+		local linkType = PQLUtil.Links:GetType(link)
 
 		if button == "LeftButton" then
 			if linkType == "item" and IsControlKeyDown() then
-				local itemId = PQL_Data.Links:GetItemId(link)
+				local itemId = PQLUtil.Links:GetItemId(link)
 				if itemId and C_Item.IsDressableItemByID(itemId) then DressUpVisual(link) end
 			else
 				editBoxWrapper.editBox:SetFocus()
 			end
-		elseif button == "RightButton" and linkType == "map" then
-			local _, point = PQL_Data.Links:GetMapPointInfo(link)
-			if not point then return end
-			PQL.dropdown:Open({
-				{
-					text = "Add WoW Waypoint",
-					OnClick = function() C_Map.SetUserWaypoint(point) end
-				},
-				{
-					text = "Add TomTom Waypoint",
-					OnClick = function()
-						local mapInfo = C_Map.GetMapInfo(point.uiMapID)
-						local waypointText = mapInfo.name
+		elseif button == "RightButton" then
+			if linkType == "map" then
+				local _, point = PQLUtil.Links:GetMapPointInfo(link)
+				if not point then return end
+				PQL.dropdown:Open({
+					{
+						text = "Add WoW Waypoint",
+						OnClick = function() C_Map.SetUserWaypoint(point) end
+					},
+					{
+						text = "Add TomTom Waypoint",
+						OnClick = function()
+							local mapInfo = C_Map.GetMapInfo(point.uiMapID)
+							local waypointText = mapInfo.name
 
-						if params.FilterMapLinkWaypointText then
-							waypointText = params.FilterMapLinkWaypointText(waypointText, mapInfo)
-						end
+							if params.FilterMapLinkWaypointText then
+								waypointText = params.FilterMapLinkWaypointText(waypointText, mapInfo)
+							end
 
-						if TomTom then
-							TomTom:AddWaypoint(point.uiMapID, point.position.x, point.position.y, {
-								title = waypointText,
-								persistent = nil,
-								minimap = true,
-								world = true
-							})
+							if TomTom then
+								TomTom:AddWaypoint(point.uiMapID, point.position.x, point.position.y, {
+									title = waypointText,
+									persistent = nil,
+									minimap = true,
+									world = true
+								})
+							end
 						end
-					end
-				}
-			})
+					}
+				})
+			else
+				editBoxWrapper.editBox:SetFocus()
+			end
+		end
+	end)
+
+	-- Right Clicks
+	editBoxWrapper.editBox:SetScript("OnMouseDown", function(_, button)
+		if button == "RightButton" and params.OnRightClick then
+			params.OnRightClick()
 		end
 	end)
 
 	-- Focus
 	editBoxWrapper.editBox:SetScript("OnEditFocusGained", function()
-		PQL._focusedEditBox = editBoxWrapper.editBox
+		PQL.focusedEditBox = editBoxWrapper.editBox
 		editBoxWrapper:SetDisplayValue(false)
 	end)
 
 	editBoxWrapper.editBox:SetScript("OnEditFocusLost", function()
-		PQL._focusedEditBox = nil
+		PQL.focusedEditBox = nil
 		editBoxWrapper:SetDisplayValue(true)
+
+		if params.FilterValue then
+			local value = editBoxWrapper:GetValue()
+			editBoxWrapper:SetValue(params.FilterValue(value) or "", true)
+		end
 	end)
 
 	-- On Change
-	editBoxWrapper.editBox:SetScript("OnTextChanged", function()
-		local value = editBoxWrapper:GetValue()
-
-		if params.FilterValue then
-			value = params.FilterValue(value)
-		end
-
-		if params.OnChanged then
+	editBoxWrapper.editBox:SetScript("OnTextChanged", function(_, userInput)
+		if userInput and params.OnChanged then
+			local value = editBoxWrapper:GetValue()
 			params.OnChanged(value)
 		end
 	end)
@@ -169,7 +181,7 @@ function PQLFactory.EditBox:Create(parent, params)
 			local result = params.FilterModifiedItemClick(itemId, itemLink)
 
 			if type(result) == "string" then
-				editBoxWrapper.editBox:SetText(result)
+				editBoxWrapper:SetValue(result, true)
 			end
 		end
 
@@ -184,20 +196,20 @@ function PQLFactory.EditBox:Create(parent, params)
     return editBoxWrapper
 end
 
-function PQLFactory.EditBox:CreateField(parent, label, editBoxParams, after, distance)
+function PQL.FACTORY.EditBox:CreateField(parent, label, editBoxParams, after, distance)
     local field = {
-        label = PQLFactory.EditBox:_CreateFieldLabel(parent, label),
-        editBox = PQLFactory.EditBox:Create(parent, editBoxParams)
+        label = PQL.FACTORY.EditBox:_CreateFieldLabel(parent, label),
+        editBox = PQL.FACTORY.EditBox:Create(parent, editBoxParams)
     }
 
     if after then
-        field.label:SetPoint("TOPLEFT", after, "BOTTOMLEFT", 0, distance or -16)
+        field.label:SetPoint("TOPLEFT", after, "BOTTOMLEFT", 0, distance or -20)
     else
         field.label:SetPoint("TOPLEFT")
     end
 
     PQLSetPoints(field.editBox, {
-        {"TOPLEFT", field.label, "BOTTOMLEFT", 0, -8},
+        {"TOPLEFT", field.label, "BOTTOMLEFT", 0, -10},
         {"TOPRIGHT", parent}
     })
 

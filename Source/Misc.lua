@@ -20,13 +20,20 @@ PQLTable.clean = function(t)
     return r
 end
 
-PQLTable.fromKeyValue = function(t, key, value)
-    for _, i in ipairs(t) do
-        if type(i) == "table" and i[key] == value then
-            return i
-        end
-    end
-    return nil
+PQLTable.fromKeyValue = function(t, key, value, multiple)
+	local result = {}
+
+	for _, i in ipairs(t) do
+		if type(i) == "table" and i[key] == value then
+			if multiple then
+				table.insert(result, i)
+			else
+				return i
+			end
+		end
+	end
+
+	return multiple and result or nil
 end
 
 PQLString = {}

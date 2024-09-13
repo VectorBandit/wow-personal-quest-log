@@ -71,7 +71,7 @@ function PQL.dropdown:Open(list, toolbar)
 			item.style = "Transparent"
 
 			if not d.popup.toolbar[i] then
-				d.popup.toolbar[i] = PQLFactory.Button:CreateIconButton(d.popup, item)
+				d.popup.toolbar[i] = PQL.FACTORY.Button:CreateIconButton(d.popup, item)
 			else
 				d.popup.toolbar[i]:Update(item)
 			end
@@ -102,7 +102,7 @@ function PQL.dropdown:Open(list, toolbar)
 			item.style = "Transparent"
 
 			if not d.popup.list[i] then
-				d.popup.list[i] = PQLFactory.Button:CreateButton(d.popup, item)
+				d.popup.list[i] = PQL.FACTORY.Button:CreateButton(d.popup, item)
 			else
 				d.popup.list[i]:Update(item)
 			end

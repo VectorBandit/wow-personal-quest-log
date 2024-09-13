@@ -1,6 +1,6 @@
-PQLFactory.StatusIcon = {}
+PQL.FACTORY.StatusIcon = {}
 
-function PQLFactory.StatusIcon:Create(parent, params)
+function PQL.FACTORY.StatusIcon:Create(parent, params)
     local icon = parent:CreateTexture(nil, "ARTWORK")
 
     icon:SetSize(params.size or 12, params.size or 12)

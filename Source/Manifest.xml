@@ -21,7 +21,6 @@
     <Script file="PersonalQuestLog.lua" />
 
     <Include file="Options/_.xml" />
-    <Include file="DB/_.xml" />
     <Include file="Core/_.xml" />
     <Include file="Panels/_.xml" />
     <Include file="Standalone/_.xml" />

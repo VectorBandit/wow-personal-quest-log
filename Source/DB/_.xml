@@ -1,6 +1,0 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <Script file="DB.lua"/>
-    <Script file="DB_Groups.lua"/>
-    <Script file="DB_Quests.lua"/>
-    <Script file="DB_Goals.lua"/>
-</Ui>

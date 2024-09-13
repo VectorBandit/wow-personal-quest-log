@@ -10,9 +10,24 @@ function m:OnInitialize()
 		handler = m,
 		type = "group",
 		args = {
+			generalGroup = {
+				name = "General",
+				type = "group",
+				order = 1,
+				args = {
+					showGoalsInTooltip = {
+						name = "Show goals in tooltip",
+						type = "toggle",
+						set = "SetShowGoalsInTooltip",
+						get = "GetShowGoalsInTooltip",
+						order = 1
+					},
+				}
+			},
 			appearanceGroup = {
 				name = "Appearance",
 				type = "group",
+				order = 2,
 				args = {
 					theme = {
 						name = "Theme",
@@ -36,7 +51,7 @@ function m:OnInitialize()
 					},
 				}
 			},
-			profilesGroup = AceDBOptions:GetOptionsTable(PQL.db)
+			profilesGroup = AceDBOptions:GetOptionsTable(PQL.DATA.db)
 		}
 	}
 
@@ -46,19 +61,19 @@ end
 
 -- The methods below are used to update each option.
 
-function m:SetDebugOption(_, value)
-    PQL.db.profile.debug = value
+function m:SetShowGoalsInTooltip(_, value)
+	PQL.DATA:Set("showGoalsInTooltip", value)
 end
 
-function m:GetDebugOption(_)
-    return PQL.db.profile.debug
+function m:GetShowGoalsInTooltip()
+	return PQL.DATA:Get("showGoalsInTooltip")
 end
 
 function m:SetThemeOption(_, value)
-    PQL.db.profile.theme = value
+	PQL.DATA:Set("theme", value)
 end
 
-function m:GetThemeOption(_)
-    return PQL.db.profile.theme
+function m:GetThemeOption()
+    return PQL.DATA:Get("theme")
 end
 

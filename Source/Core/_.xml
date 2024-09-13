@@ -1,7 +1,10 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <Script file="Core.lua"/>
-    <Script file="Data.lua"/>
-    <Script file="Factory.lua"/>
-	<Include file="Factory/_.xml"/>
+    <Script file="Constants.lua"/>
+    <Script file="Util.lua"/>
     <Script file="Theme.lua"/>
+    <Script file="Goals.lua"/>
+    <Script file="Data.lua"/>
+	<Include file="Data/_.xml"/>
+	<Include file="Factory/_.xml"/>
+	<Include file="Entity/_.xml"/>
 </Ui>

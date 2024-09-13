@@ -1,13 +1,12 @@
-PQL.main = PQLFactory.Panel:Create("Main", {size = {280, 550}})
+PQL.main = PQL.FACTORY.Panel:Create("Main", {size = {280, 550}})
 
 function PQL.main:Init()
-    self.createGroupButton = PQLFactory.Button:CreateIconButton(PQL.main, {
+    self.createGroupButton = PQL.FACTORY.Button:CreateIconButton(PQL.main, {
         icon = "Add",
         anchor = {"TOPLEFT", PQL.main, "TOPLEFT", 10, -10},
-        tooltip = {title = "Create Quest Group"},
+        tooltip = {title = "Create Group"},
         OnClick = function()
-            local newQuestGroup = PQL_DB.Groups:Create()
-            PQL.main.GroupDrawer:Open(newQuestGroup.groupId)
+            PQL.ENTITY.Group:Create():Edit()
         end,
     })
 
@@ -16,47 +15,56 @@ function PQL.main:Init()
 	PQLSetFont(self.title, { text = "Personal Quest Log" })
 	self.title:SetPoint("LEFT", self, "TOPLEFT", 44, -22)
 
-    self.helpButton = PQLFactory.Button:CreateIconButton(PQL.main, {
+    self.helpButton = PQL.FACTORY.Button:CreateIconButton(PQL.main, {
         icon = "Help",
         anchor = {"RIGHT", PQL.main, "TOPRIGHT", -44, -22},
         tooltip = {title = "Help"},
         OnClick = function() self:ToggleHelp() end,
     })
 
-    self.closeButton = PQLFactory.Button:CreateIconButton(PQL.main, {
+    self.closeButton = PQL.FACTORY.Button:CreateIconButton(PQL.main, {
         icon = "Close",
         anchor = {"RIGHT", PQL.main, "TOPRIGHT", -10, -22},
         OnClick = function() PQL.main:Hide() end,
     })
 
-    self.inner.groups = PQLFactory.DynamicList:Create(self.inner, {
+    self.inner.groups = PQL.FACTORY.DynamicList:Create(self.inner, {
         spacing = 12,
         actions = PQL.main.groupsActions
     })
 
 	-- Update when Groups, Quests, or Goals are updated.
-	PQL_DB:On({"Groups.Updated", "Quests.Updated", "Goals.Updated"}, function()
-		self:Update()
-	end)
+	PQL.DATA:On({
+		"GROUP_CREATED",
+		"GROUP_UPDATED",
+		"GROUP_DELETED",
+		"QUEST_CREATED",
+		"QUEST_UPDATED",
+		"QUEST_DELETED",
+		"GOAL_CREATED",
+		"GOAL_UPDATED",
+		"GOAL_DELETED",
+	}, function() self:UpdateList() end)
 
-	self:Update()
+	self:UpdateList()
 end
 
 function PQL.main:OnShow()
-	if not PQL.db.profile.seenHelp then
+	if not PQL.DATA:Get("seenHelp") then
 		self:ToggleHelp()
-		PQL.db.profile.seenHelp = true
+		PQL.DATA:Set("seenHelp", true)
 	end
 
-	self:Update()
+	self:UpdateList()
 end
 
 function PQL.main:OnHide()
 	HelpPlate_Hide()
 end
 
-function PQL.main:Update()
-	PQL_Core:CheckGoalsCompletion()
+function PQL.main:UpdateList()
+	-- FIX: Implement better solution.
+	-- PQL_Core:CheckAsyncGoalsCompletion()
 	self.inner.groups:Populate()
 end
 
@@ -178,7 +186,7 @@ end
 
 PQL.main.groupsActions = {
     FetchEntries = function()
-        return PQL_DB.Groups:GetOrdered()
+		return PQL.ENTITY.Group:All()
     end,
 
     Create = function(parent)
@@ -186,67 +194,52 @@ PQL.main.groupsActions = {
         PQLPrepareForText(groupFrame)
 
         -- Title (Click to Edit)
-		groupFrame.title = PQLFactory.Button:CreateButton(groupFrame, {
+		groupFrame.title = PQL.FACTORY.Button:CreateButton(groupFrame, {
 			style = "Faded",
 			anchor = {{"TOPLEFT"}, {"RIGHT", -34, 0}},
 			justify = "LEFT",
-			OnClick = function()
-				PQL.main.GroupDrawer:Open(groupFrame.entryData.groupId)
-			end,
+			OnClick = function() groupFrame.data:Edit() end,
 			OnRightClick = function()
 				PQL.dropdown:Open({
 					{
 						text = "Add quest",
 						justify = "LEFT",
-						OnClick = function()
-							local newQuest = PQL_DB.Quests:Create(groupFrame.entryData.groupId)
-							PQL.main.QuestDrawer:Open(newQuest.questId)
-						end
+						OnClick = function() PQL.ENTITY.Quest:Create(groupFrame.data:GetID()):Edit() end
 					},
 				}, {
 					{
 						icon = "Delete",
 						tooltip = {title = "Delete Group"},
 						OnClick = function()
-							PQL.confirmationPopup:Open({
-								OnConfirm = function()
-									PQL_DB.Groups:Delete(groupFrame.entryData.groupId)
-									PQL.main.GroupDrawer:Close()
-								end
+							PQL.confirmPopup:Open({
+								text = "Deleting this group will also delete all quests associated with it.",
+								OnConfirm = function() groupFrame.data:Delete() end
 							})
 						end
 					},
 					{
 						icon = "ArrowDown",
 						tooltip = {title = "Move Down"},
-						OnClick = function()
-							PQL_DB.Groups:Reorder(groupFrame.entryData.groupId, 1)
-						end
+						OnClick = function() groupFrame.data:Reorder(1) end
 					},
 					{
 						icon = "ArrowUp",
 						tooltip = {title = "Move Up"},
-						OnClick = function()
-							PQL_DB.Groups:Reorder(groupFrame.entryData.groupId, -1)
-						end
+						OnClick = function() groupFrame.data:Reorder(-1) end
 					},
 					{
 						icon = "Edit",
-						OnClick = function()
-							PQL.main.GroupDrawer:Open(groupFrame.entryData.groupId)
-						end
+						OnClick = function() groupFrame.data:Edit() end
 					},
 				})
 			end
 		})
 
 		-- Collapse Button
-        groupFrame.collapseButton = PQLFactory.Button:CreateIconButton(groupFrame, {
+        groupFrame.collapseButton = PQL.FACTORY.Button:CreateIconButton(groupFrame, {
             icon = "ChevronDown",
             anchor = {"TOPRIGHT"},
-            OnClick = function()
-				PQL_DB.Groups:Update(groupFrame.entryData.groupId, "isCollapsed", not groupFrame.entryData.isCollapsed)
-            end
+            OnClick = function() groupFrame.data:ToggleCollapsed() end
         })
 
         -- Inner Wrapper (Quests List)
@@ -254,7 +247,7 @@ PQL.main.groupsActions = {
         PQLPrepareForText(groupFrame.inner)
         PQLSetPoints(groupFrame.inner, {{"TOPLEFT", groupFrame, "TOPLEFT", 0, -39}, {"TOPRIGHT"}})
 
-        groupFrame.inner.quests = PQLFactory.DynamicList:Create(groupFrame.inner, {
+        groupFrame.inner.quests = PQL.FACTORY.DynamicList:Create(groupFrame.inner, {
             actions = PQL.main.questsActions,
             spacing = 15
         })
@@ -263,22 +256,22 @@ PQL.main.groupsActions = {
     end,
 
     Init = function(groupFrame)
-        groupFrame.title.text:SetText(groupFrame.entryData.groupTitle)
+        groupFrame.title.text:SetText(groupFrame.data:GetTitle())
 
         groupFrame.collapseButton:Update({
-			icon = groupFrame.entryData.isCollapsed and "ChevronLeft" or "ChevronDown"
+			icon = groupFrame.data:IsCollapsed() and "ChevronLeft" or "ChevronDown"
 		})
 
         -- Update the quests list.
-		if groupFrame.entryData.isCollapsed then
+		if groupFrame.data:IsCollapsed() then
 			groupFrame.inner:Hide()
 		else
-			groupFrame.inner.quests:Populate(groupFrame.entryData.groupId)
+			groupFrame.inner.quests:Populate(groupFrame.data:GetID())
 			groupFrame.inner:Show()
 		end
 
         -- Update the group frame height.
-		local groupFrameHeight = groupFrame.entryData.isCollapsed and 24 or (
+		local groupFrameHeight = groupFrame.data:IsCollapsed() and 24 or (
 			24 + (groupFrame.inner.quests:IsEmpty() and 0 or 15 + groupFrame.inner:GetHeight())
 		)
 
@@ -291,8 +284,8 @@ PQL.main.groupsActions = {
 -------------------------------------------------------------------------------
 
 PQL.main.questsActions = {
-    FetchEntries = function(groupId)
-        return PQL_DB.Quests:GetByGroup(groupId, true)
+    FetchEntries = function(groupID)
+		return PQL.ENTITY.Quest:ByGroup(groupID, true)
     end,
 
     Create = function(parent)
@@ -307,14 +300,14 @@ PQL.main.questsActions = {
         questFrame.title:RegisterForClicks("AnyUp")
         questFrame.title:SetScript("OnClick", function(_, button)
 			if button == "LeftButton" then
-				PQL.main.QuestDrawer:Open(questFrame.entryData.questId)
+				questFrame.data:Edit()
 			elseif button == "RightButton" then
 				PQL.dropdown:Open({
 					{
 						text = "Move quest",
 						OnClick = function()
-							local options = PQL_DB.Groups:GetAsDropdownOptions(function(group)
-								PQL_DB.Quests:Update(questFrame.entryData.questId, "groupId", group.groupId)
+							local options = PQL.ENTITY.Group:AsDropdownOptions(function(group)
+								questFrame.data:Move(group:GetID())
 							end)
 
 							PQL.dropdown:Open(options)
@@ -322,41 +315,32 @@ PQL.main.questsActions = {
 					},
 					{
 						text = "Hide quest",
-						OnClick = function()
-							PQL_DB.Quests:Update(questFrame.entryData.questId, "isVisible", not questFrame.entryData.isVisible)
-						end
+						OnClick = function() questFrame.data:ToggleVisible() end
 					},
 				}, {
 					{
 						icon = "Delete",
 						tooltip = {title = "Delete Quest"},
 						OnClick = function()
-							PQL.confirmationPopup:Open({
-								OnConfirm = function()
-									PQL_DB.Quests:Delete(questFrame.entryData.questId)
-								end
+							PQL.confirmPopup:Open({
+								text = "Deleting this quest will also delete all goals associated with it.",
+								OnConfirm = function() questFrame.data:Delete() end
 							})
 						end
 					},
 					{
 						icon = "ArrowDown",
 						tooltip = {title = "Move Down"},
-						OnClick = function()
-							PQL_DB.Quests:Reorder(questFrame.entryData.questId, 1)
-						end
+						OnClick = function() questFrame.data:Reorder(1) end
 					},
 					{
 						icon = "ArrowUp",
 						tooltip = {title = "Move Up"},
-						OnClick = function()
-							PQL_DB.Quests:Reorder(questFrame.entryData.questId, -1)
-						end
+						OnClick = function() questFrame.data:Reorder(-1) end
 					},
 					{
 						icon = "Edit",
-						OnClick = function()
-							PQL.main.QuestDrawer:Open(questFrame.entryData.questId)
-						end
+						OnClick = function() questFrame.data:Edit() end
 					},
 				})
 			end
@@ -383,7 +367,7 @@ PQL.main.questsActions = {
         questFrame.inner = CreateFrame("Frame", nil, questFrame)
         PQLPrepareForText(questFrame.inner)
 
-        questFrame.inner.goals = PQLFactory.DynamicList:Create(questFrame.inner, {
+        questFrame.inner.goals = PQL.FACTORY.DynamicList:Create(questFrame.inner, {
             actions = PQL.main.goalsActions
         })
 
@@ -391,15 +375,7 @@ PQL.main.questsActions = {
     end,
 
     Init = function(questFrame)
-		local title = questFrame.entryData.questTitle:trim() ~= "" and questFrame.entryData.questTitle or "[NO_TITLE]"
-
-		-- Append the goal status (completed/total)
-		local completed, _, total = PQL_DB.Goals:GetCount(questFrame.entryData.questId)
-		if total > 0 then
-			title = string.format("%s (%d/%d)", title, completed, total)
-		end
-
-        questFrame.title.titleText:SetText(title)
+        questFrame.title.titleText:SetText(questFrame.data:GetTitle(true))
         questFrame.title:SetHeight(questFrame.title.titleText:GetStringHeight())
 
         -- The position needs to be set after the quest title has been calculated
@@ -407,7 +383,7 @@ PQL.main.questsActions = {
         PQLSetPoints(questFrame.inner, {{"TOPLEFT", questFrame.title, "BOTTOMLEFT", 0, -14}, {"RIGHT"}})
 
         -- Populate the list of goals.
-        questFrame.inner.goals:Populate(questFrame.entryData.questId)
+        questFrame.inner.goals:Populate(questFrame.data:GetID())
 
         -- Update the height of this frame to be the height of the quest title + spacing + the list height.
 		local questFrameHeight = questFrame.title:GetHeight() + (
@@ -423,8 +399,8 @@ PQL.main.questsActions = {
 -------------------------------------------------------------------------------
 
 PQL.main.goalsActions = {
-    FetchEntries = function(questId)
-        return PQL_DB.Goals:GetByQuest(questId)
+    FetchEntries = function(questID)
+		return PQL.ENTITY.Goal:ByQuest(questID)
     end,
 
     Create = function(parent)
@@ -432,7 +408,7 @@ PQL.main.goalsActions = {
         PQLPrepareForText(goalFrame)
 
 		-- Status Icon
-        goalFrame.statusIcon = PQLFactory.StatusIcon:Create(goalFrame, {
+        goalFrame.statusIcon = PQL.FACTORY.StatusIcon:Create(goalFrame, {
             icon = "Check",
             anchor = {{"TOPLEFT"}}
         })
@@ -449,20 +425,12 @@ PQL.main.goalsActions = {
 		-- Setup manual completion for "Custom" goals.
         goalFrame:RegisterForClicks("LeftButtonUp")
 
-        goalFrame:SetScript("OnDoubleClick", function()
-            if goalFrame.entryData.goalType == 1 then
-				PQL_DB.Goals:Update(goalFrame.entryData.goalId, "isCompleted", not goalFrame.entryData.isCompleted)
-            end
-        end)
+		goalFrame:SetScript("OnClick", function() goalFrame.data:Edit() end)
+        goalFrame:SetScript("OnDoubleClick", function() goalFrame.data:MaybeToggleCompleted() end)
 
 		goalFrame:SetScript("OnEnter", function()
 			goalFrame.text:SetTextColor(1, 1, 1, 1)
-
-			if goalFrame.entryData.goalType == 2 then
-				PQL_Data.Items:ShowTooltip(goalFrame.entryData.goalDetails.resourceId, goalFrame)
-			elseif goalFrame.entryData.goalType == 3 then
-				PQL_Data.Currencies:ShowTooltip(goalFrame.entryData.goalDetails.resourceId, goalFrame)
-			end
+			goalFrame.data:ShowTooltip(goalFrame)
 		end)
 
 		goalFrame:SetScript("OnLeave", function()
@@ -474,53 +442,12 @@ PQL.main.goalsActions = {
     end,
 
     Init = function(goalFrame)
-		-- Set completion status.
-		goalFrame.statusIcon:SetStatus(goalFrame.entryData.isCompleted)
+		goalFrame.statusIcon:SetStatus(goalFrame.data:IsCompleted())
 
-        -- Goal Type: Custom
-        if goalFrame.entryData.goalType == 1 then
-			PQLSetText(goalFrame.text, goalFrame.entryData.goalDetails.description)
-
-		-- Goal Type: Item
-		elseif goalFrame.entryData.goalType == 2 then
-			-- Set the item name as NOT FOUND until we receive a response from the API.
-			PQL.main:AsyncUpdateGoalInfo(goalFrame, nil)
-
-			-- Request the item information, and then update the goal again.
-			PQL_Data.Items:Get(goalFrame.entryData.goalDetails.resourceId, function(item)
-				PQL.main:AsyncUpdateGoalInfo(goalFrame, item)
-			end)
-
-		-- Goal Type: Currency
-		elseif goalFrame.entryData.goalType == 3 then
-			local currencyData = PQL_Data.Currencies:Get(goalFrame.entryData.goalDetails.resourceId)
-			PQL.main:AsyncUpdateGoalInfo(goalFrame, currencyData)
-
-		-- Not Supported
-        else
-            goalFrame.text:SetText("[UNSUPPORTED_GOAL_TYPE]")
-        end
-
-        goalFrame:SetHeight(goalFrame.text:GetStringHeight())
+		goalFrame.data:AsyncGetText(function(text)
+			goalFrame.text:SetText(text)
+			goalFrame:SetHeight(goalFrame.text:GetStringHeight())
+		end)
     end
 }
-
-function PQL.main:AsyncUpdateGoalInfo(goalFrame, resourceData)
-	-- Prepare the resource count text.
-	local r = goalFrame.entryData.goalDetails.requiredCount or 0
-	r = tonumber(r) or 0
-	local c = goalFrame.entryData.goalDetails.currentCount or 0
-	c = tonumber(c) or 0
-	-- WARN: Removing clamp until a total amount is not shown.
-	-- if c > r then c = r end
-
-	local resourceCountText = string.format("%d/%d", c, r)
-
-	-- Prepare the resource name text.
-	local resourceNameText = resourceData and resourceData.name or (
-		goalFrame.entryData.goalType == 2 and "[ITEM_NOT_FOUND]" or "[CURRENCY_NOT_FOUND]"
-	)
-
-	goalFrame.text:SetFormattedText("%s %s", resourceCountText, resourceNameText)
-end
 

@@ -49,10 +49,10 @@ PQLTheme = {
 }
 
 function PQLTheme:Color(name)
-	return unpack(PQLTheme.colors[PQL.db.profile.theme][name] or nil)
+	return unpack(PQLTheme.colors[PQL.DATA:Get("theme")][name] or nil)
 end
 
 function PQLTheme:ColorTable(name)
-	return PQLTheme.colors[PQL.db.profile.theme][name] or nil
+	return PQLTheme.colors[PQL.DATA:Get("theme")][name] or nil
 end
 

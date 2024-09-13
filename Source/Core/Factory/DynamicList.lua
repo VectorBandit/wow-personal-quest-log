@@ -1,6 +1,6 @@
-PQLFactory.DynamicList = {}
+PQL.FACTORY.DynamicList = {}
 
-function PQLFactory.DynamicList:Create(parent, params)
+function PQL.FACTORY.DynamicList:Create(parent, params)
     local List = {
         entries = {},
         items = {}
@@ -25,7 +25,7 @@ function PQLFactory.DynamicList:Create(parent, params)
             if result == nil then
                 PQL:Print("[ERROR] Factory function for dynamic list did not return a frame.")
             end
-            result.entryData = firstTimeCreateOnlyEntryData
+            result.data = firstTimeCreateOnlyEntryData
             return result
         end
 
@@ -33,7 +33,7 @@ function PQLFactory.DynamicList:Create(parent, params)
     end
 
     function List:Init(entryFrame, entryData, initParams)
-        entryFrame.entryData = entryData
+        entryFrame.data = entryData
 
         if self.actions.Init then
             self.actions.Init(entryFrame, initParams)

@@ -1,6 +1,6 @@
-PQLFactory.ScrollFrame = {}
+PQL.FACTORY.ScrollFrame = {}
 
-function PQLFactory.ScrollFrame:Create(parent, params)
+function PQL.FACTORY.ScrollFrame:Create(parent, params)
 	parent.scrollFrame = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
 	local s = parent.scrollFrame
 
