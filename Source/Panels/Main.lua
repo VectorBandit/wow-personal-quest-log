@@ -352,7 +352,7 @@ PQL.main.questsActions = {
             size = 12,
             justify = "LEFT",
             align = "TOP",
-            color = PQLTheme:ColorTable("text")
+            color = PQL.THEME:ColorTable("text")
         })
 
         questFrame.title:SetScript("OnEnter", function()
@@ -360,7 +360,7 @@ PQL.main.questsActions = {
         end)
 
         questFrame.title:SetScript("OnLeave", function()
-            questFrame.title.titleText:SetTextColor(PQLTheme:Color("text"))
+            questFrame.title.titleText:SetTextColor(PQL.THEME:Color("text"))
         end)
 
         -- Inner (Goals List)
