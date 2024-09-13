@@ -359,7 +359,7 @@ function PQL.main.QuestDrawer:CreateGoalFieldTabs(goalFrame)
 		OnChanged = function(resourceID) goalFrame.data:Update("resourceID", resourceID, PQL_NOT_STRICT) end,
 		FilterDisplayValue = function(value)
 			if not value or value:trim() == "" then return "" end
-			local currencyInfo = PQLUtil.Currencies:Get(value)
+			local currencyInfo = PQL.UTIL.CURRENCY:Get(value)
 			return currencyInfo and currencyInfo.link or value.." (Invalid ID)"
 		end,
 	})
@@ -394,7 +394,7 @@ function PQL.main.QuestDrawer:CreateGoalFieldTabs(goalFrame)
 				OnClick = function()
 					local targetGUID = UnitGUID("target")
 					if not targetGUID then return end
-					local targetId = PQLUtil.Units:GetIDFromGUID(targetGUID)
+					local targetId = PQL.UTIL.UNIT:GetIDFromGUID(targetGUID)
 					if not targetId then return end
 					t4["unitID"]:SetValue(targetId, true)
 				end,
@@ -403,7 +403,7 @@ function PQL.main.QuestDrawer:CreateGoalFieldTabs(goalFrame)
 		OnChanged = function(unitID) goalFrame.data:Update("unitID", unitID, PQL_NOT_STRICT) end,
 		FilterDisplayValue = function(value)
 			if not value or value:trim() == "" then return value end
-			return PQLUtil.Links:MakeUnit(value:trim()) or value
+			return PQL.UTIL.LINK:MakeUnit(value:trim()) or value
 		end,
 		FilterValue = function(value)
 			return value and value:gsub("%D", "") or value

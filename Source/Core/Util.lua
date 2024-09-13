@@ -1,12 +1,76 @@
-PQLUtil = {}
+PQL.UTIL = {}
 
 -------------------------------------------------------------------------------
--- Units
+-- » Hyperlinks
 -------------------------------------------------------------------------------
 
-PQLUtil.Units = {}
+PQL.UTIL.LINK = {}
 
-function PQLUtil.Units:ShowTooltip(id, anchorTo)
+function PQL.UTIL.LINK:GetType(link)
+	if strfind(link, "item:(%d+)") then
+		return "item"
+	elseif strfind(link, "currency:(%d+)") then
+		return "currency"
+	elseif strfind(link, "worldmap:(%d+):(%d+):(%d+)") then
+		return "map"
+	end
+end
+
+-- @see https://wowpedia.fandom.com/wiki/Hyperlinks#item
+function PQL.UTIL.LINK:GetItemId(link)
+	return select(3, strfind(link, "item:(%d+)"))
+end
+
+-- @see https://wowpedia.fandom.com/wiki/Hyperlinks#currency
+function PQL.UTIL.LINK:GetCurrencyId(link)
+	return select(3, strfind(link, "currency:(%d+)"))
+end
+
+function PQL.UTIL.LINK:GetMapPointInfo(link)
+	local _, _, mapId, x, y = strfind(link, "worldmap:(%d+):(%d+):(%d+)")
+
+	if mapId and x and y then
+		mapId = tonumber(mapId)
+		x = tonumber(x)
+		y = tonumber(y)
+
+		local mapPoint = UiMapPoint.CreateFromVector2D(mapId, {
+			x = x / 10000,
+			y = y / 10000
+		})
+
+		return unpack({
+			{mapId = mapId, x = x, y = y},
+			mapPoint
+		})
+	end
+
+	return nil
+end
+
+-- @see https://wowpedia.fandom.com/wiki/Hyperlinks#worldmap
+function PQL.UTIL.LINK:MakePin(uiMapId, x, y)
+	local mapId = C_Map.GetBestMapForUnit("player")
+	local mapInfo = C_Map.GetMapInfo(mapId)
+	local x, y = C_Map.GetPlayerMapPosition(mapId, "player"):GetXY()
+
+	return string.format("|cffffff00|Hworldmap:%d:%d:%d|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a %s]|h|r", mapId, x * 10000, y * 10000, mapInfo.name)
+end
+
+function PQL.UTIL.LINK:MakeUnit(npcId)
+	local npcName = PQL.UTIL.UNIT:GetNameFromID(npcId)
+	if not npcName then npcName = npcId end
+
+	return string.format("|Hunit:Creature-0-0-0-0-%d:%s|h[%s]|h", npcId, npcName, npcName)
+end
+
+-------------------------------------------------------------------------------
+-- » Units
+-------------------------------------------------------------------------------
+
+PQL.UTIL.UNIT = {}
+
+function PQL.UTIL.UNIT:ShowTooltip(id, anchorTo)
 	if anchorTo then PQLAnchorTooltip(anchorTo) end
 	if not id then id = 0 end
 	id = tonumber(id) or 0
@@ -15,12 +79,12 @@ function PQLUtil.Units:ShowTooltip(id, anchorTo)
 	GameTooltip:Show()
 end
 
-function PQLUtil.Units:GetIDFromGUID(unitGUID)
+function PQL.UTIL.UNIT:GetIDFromGUID(unitGUID)
 	local unitID = select(6, strsplit("-", unitGUID))
 	return unitID and tonumber(unitID) or nil
 end
 
-function PQLUtil.Units:GetNameFromID(npcId)
+function PQL.UTIL.UNIT:GetNameFromID(npcId)
 	if not npcId then return nil end
 	npcId = tonumber(npcId)
 	if not npcId then return nil end
@@ -31,11 +95,11 @@ function PQLUtil.Units:GetNameFromID(npcId)
 	return tooltipInfo.lines[1].leftText
 end
 
-function PQLUtil.Units:GetTypeFromGUID(unitGUID)
+function PQL.UTIL.UNIT:GetTypeFromGUID(unitGUID)
 	return strsplit("-", unitGUID)
 end
 
-function PQLUtil.Units:IsInParty(unitGUID)
+function PQL.UTIL.UNIT:IsInParty(unitGUID)
 	-- Player or Player's Pet
 	if UnitGUID("player") == unitGUID or UnitGUID("pet") == unitGUID then
 		return true
@@ -59,78 +123,14 @@ function PQLUtil.Units:IsInParty(unitGUID)
 end
 
 -------------------------------------------------------------------------------
--- Hyperlinks
+-- » Items
 -------------------------------------------------------------------------------
 
-PQLUtil.Links = {}
-
-function PQLUtil.Links:GetType(link)
-	if strfind(link, "item:(%d+)") then
-		return "item"
-	elseif strfind(link, "currency:(%d+)") then
-		return "currency"
-	elseif strfind(link, "worldmap:(%d+):(%d+):(%d+)") then
-		return "map"
-	end
-end
-
--- @see https://wowpedia.fandom.com/wiki/Hyperlinks#item
-function PQLUtil.Links:GetItemId(link)
-	return select(3, strfind(link, "item:(%d+)"))
-end
-
--- @see https://wowpedia.fandom.com/wiki/Hyperlinks#currency
-function PQLUtil.Links:GetCurrencyId(link)
-	return select(3, strfind(link, "currency:(%d+)"))
-end
-
-function PQLUtil.Links:GetMapPointInfo(link)
-	local _, _, mapId, x, y = strfind(link, "worldmap:(%d+):(%d+):(%d+)")
-
-	if mapId and x and y then
-		mapId = tonumber(mapId)
-		x = tonumber(x)
-		y = tonumber(y)
-
-		local mapPoint = UiMapPoint.CreateFromVector2D(mapId, {
-			x = x / 10000,
-			y = y / 10000
-		})
-
-		return unpack({
-			{mapId = mapId, x = x, y = y},
-			mapPoint
-		})
-	end
-
-	return nil
-end
-
--- @see https://wowpedia.fandom.com/wiki/Hyperlinks#worldmap
-function PQLUtil.Links:MakePin(uiMapId, x, y)
-	local mapId = C_Map.GetBestMapForUnit("player")
-	local mapInfo = C_Map.GetMapInfo(mapId)
-	local x, y = C_Map.GetPlayerMapPosition(mapId, "player"):GetXY()
-
-	return string.format("|cffffff00|Hworldmap:%d:%d:%d|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a %s]|h|r", mapId, x * 10000, y * 10000, mapInfo.name)
-end
-
-function PQLUtil.Links:MakeUnit(npcId)
-	local npcName = PQLUtil.Units:GetNameFromID(npcId)
-	if not npcName then npcName = npcId end
-
-	return string.format("|Hunit:Creature-0-0-0-0-%d:%s|h[%s]|h", npcId, npcName, npcName)
-end
-
--------------------------------------------------------------------------------
--- Items
--------------------------------------------------------------------------------
-
-PQLUtil.Items = {
+PQL.UTIL.ITEM = {
 	_getCallbacks = {}
 }
 
-function PQLUtil.Items:ShowTooltip(id, anchorTo)
+function PQL.UTIL.ITEM:ShowTooltip(id, anchorTo)
 	self:Get(id, function(item)
 		if item then
 			if anchorTo then PQLAnchorTooltip(anchorTo) end
@@ -140,7 +140,7 @@ function PQLUtil.Items:ShowTooltip(id, anchorTo)
 	end)
 end
 
-function PQLUtil.Items:Get(id, callback)
+function PQL.UTIL.ITEM:Get(id, callback)
 	if not id or id == "" then return callback(nil) end
 
 	local itemName, itemLink = C_Item.GetItemInfo(id)
@@ -148,11 +148,11 @@ function PQLUtil.Items:Get(id, callback)
 	if not itemName then
 		-- WoW is probably still processing the request.
 		-- Let's save the callback and maybe respond later.
-		if not PQLUtil.Items._getCallbacks["item_"..id] then
-			PQLUtil.Items._getCallbacks["item_"..id] = {}
+		if not PQL.UTIL.ITEM._getCallbacks["item_"..id] then
+			PQL.UTIL.ITEM._getCallbacks["item_"..id] = {}
 		end
 
-		table.insert(PQLUtil.Items._getCallbacks["item_"..id], callback)
+		table.insert(PQL.UTIL.ITEM._getCallbacks["item_"..id], callback)
 
 		-- Immediately respond with nil.
 		callback(nil)
@@ -165,32 +165,32 @@ function PQLUtil.Items:Get(id, callback)
 	end
 end
 
-function PQLUtil.Items:GetCount(id)
+function PQL.UTIL.ITEM:GetCount(id)
 	id = tonumber(id)
 	if not id then return 0 end
 
 	return GetItemCount(id, true, false, true)
 end
 
-function PQLUtil.Items:_RunGetCallbacks(id, success)
-	if not PQLUtil.Items._getCallbacks["item_"..id] then return end
+function PQL.UTIL.ITEM:_RunGetCallbacks(id, success)
+	if not PQL.UTIL.ITEM._getCallbacks["item_"..id] then return end
 
-	for i, callback in ipairs(PQLUtil.Items._getCallbacks["item_"..id]) do
+	for i, callback in ipairs(PQL.UTIL.ITEM._getCallbacks["item_"..id]) do
 		if callback and success then
 			-- Call the Get function again, which will hopefully return the item correctly this time.
-			PQLUtil.Items:Get(id, callback)
-			PQLUtil.Items._getCallbacks["item_"..id][i] = nil
+			PQL.UTIL.ITEM:Get(id, callback)
+			PQL.UTIL.ITEM._getCallbacks["item_"..id][i] = nil
 		end
 	end
 end
 
 -------------------------------------------------------------------------------
--- Currencies
+-- » Currencies
 -------------------------------------------------------------------------------
 
-PQLUtil.Currencies = {}
+PQL.UTIL.CURRENCY = {}
 
-function PQLUtil.Currencies:ShowTooltip(id, anchorTo)
+function PQL.UTIL.CURRENCY:ShowTooltip(id, anchorTo)
 	local currency = self:Get(id)
 
 	if currency then
@@ -200,7 +200,7 @@ function PQLUtil.Currencies:ShowTooltip(id, anchorTo)
 	end
 end
 
-function PQLUtil.Currencies:Get(id)
+function PQL.UTIL.CURRENCY:Get(id)
 	id = tonumber(id)
 	if not id then return nil end
 
@@ -214,7 +214,7 @@ function PQLUtil.Currencies:Get(id)
 	}
 end
 
-function PQLUtil.Currencies:GetCount(id)
+function PQL.UTIL.CURRENCY:GetCount(id)
 	id = tonumber(id)
 	if not id then return 0 end
 
@@ -224,14 +224,14 @@ function PQLUtil.Currencies:GetCount(id)
 end
 
 -------------------------------------------------------------------------------
--- Merchants
+-- » Merchants
 -------------------------------------------------------------------------------
 
-PQLUtil.Merchant = {
+PQL.UTIL.MERCHANT = {
 	_items = {}
 }
 
-function PQLUtil.Merchant:Update()
+function PQL.UTIL.MERCHANT:Update()
 	self._items = {}
 
 	local numItems = GetMerchantNumItems()
@@ -241,7 +241,7 @@ function PQLUtil.Merchant:Update()
 	end
 end
 
-function PQLUtil.Merchant:GetItemCost(index)
+function PQL.UTIL.MERCHANT:GetItemCost(index)
 	local cost = {}
 	local numResources = GetMerchantItemCostInfo(index)
 
@@ -252,15 +252,15 @@ function PQLUtil.Merchant:GetItemCost(index)
 			amount = amount,
 			type = currencyName and PQL_GOALTYPE_CURRENCY or PQL_GOALTYPE_ITEM,
 			id = currencyName and
-				PQLUtil.Links:GetCurrencyId(link) or
-				PQLUtil.Links:GetItemId(link)
+				PQL.UTIL.LINK:GetCurrencyId(link) or
+				PQL.UTIL.LINK:GetItemId(link)
 		}
 	end
 
 	return cost
 end
 
-function PQLUtil.Merchant:GetItem(index)
+function PQL.UTIL.MERCHANT:GetItem(index)
 	local id = self._items[index]
 	local name, link = C_Item.GetItemInfo(id)
 
@@ -274,7 +274,7 @@ function PQLUtil.Merchant:GetItem(index)
 	}
 end
 
-function PQLUtil.Merchant:GetItemByID(itemId)
+function PQL.UTIL.MERCHANT:GetItemByID(itemId)
 	for index, id in pairs(self._items) do
 		if id == itemId then return self:GetItem(index) end
 	end

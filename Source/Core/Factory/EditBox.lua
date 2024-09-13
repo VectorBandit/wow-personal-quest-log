@@ -92,18 +92,18 @@ function PQL.FACTORY.EditBox:Create(parent, params)
 	end)
 
 	editBoxWrapper.editBox:SetScript("OnHyperlinkClick", function(_, link, _, button)
-		local linkType = PQLUtil.Links:GetType(link)
+		local linkType = PQL.UTIL.LINK:GetType(link)
 
 		if button == "LeftButton" then
 			if linkType == "item" and IsControlKeyDown() then
-				local itemId = PQLUtil.Links:GetItemId(link)
+				local itemId = PQL.UTIL.LINK:GetItemId(link)
 				if itemId and C_Item.IsDressableItemByID(itemId) then DressUpVisual(link) end
 			else
 				editBoxWrapper.editBox:SetFocus()
 			end
 		elseif button == "RightButton" then
 			if linkType == "map" then
-				local _, point = PQLUtil.Links:GetMapPointInfo(link)
+				local _, point = PQL.UTIL.LINK:GetMapPointInfo(link)
 				if not point then return end
 				PQL.dropdown:Open({
 					{

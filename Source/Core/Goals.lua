@@ -64,7 +64,7 @@ function PQL.GOALS:ExtendUnitTooltip(tooltip)
 	local _, _, unitGUID = tooltip:GetUnit()
 	if not unitGUID then return end
 
-	local unitID = PQLUtil.Units:GetIDFromGUID(unitGUID)
+	local unitID = PQL.UTIL.UNIT:GetIDFromGUID(unitGUID)
 	if not unitID then return end
 
 	AppendGoalsToTooltip(tooltip, function(goal)
@@ -109,12 +109,12 @@ end
 
 function PQL.GOALS:ProcessInventoryDependentGoal(goal)
 	if goal:IsType(PQL_GOALTYPE_ITEM) then
-		local current = PQLUtil.Items:GetCount(goal:GetNumber("resourceID"))
+		local current = PQL.UTIL.ITEM:GetCount(goal:GetNumber("resourceID"))
 		goal:Update("currentCount", current, PQL_NOT_STRICT)
 		self:DetermineGoalCompletion(goal)
 
 	elseif goal:IsType(PQL_GOALTYPE_CURRENCY) then
-		local current = PQLUtil.Currencies:GetCount(goal:GetNumber("resourceID"))
+		local current = PQL.UTIL.CURRENCY:GetCount(goal:GetNumber("resourceID"))
 		goal:Update("currentCount", current, PQL_NOT_STRICT)
 		self:DetermineGoalCompletion(goal)
 	end
@@ -130,7 +130,7 @@ end
 function PQL.GOALS:ProcessCombatDependentGoals()
 	local _, eventType, _, sourceGUID, _, _, _, unitGUID, _, _, _ = CombatLogGetCurrentEventInfo()
 	if not unitGUID then return end
-	local unitID = PQLUtil.Units:GetIDFromGUID(unitGUID)
+	local unitID = PQL.UTIL.UNIT:GetIDFromGUID(unitGUID)
 	if not unitID then return end
 
 	local isDamageEvent = string.match(eventType, "_DAMAGE$")
@@ -154,7 +154,7 @@ function PQL.GOALS:ProcessCombatDependentGoals()
 				-- >> Pet owned by someone in current Party or Raid
 				local lastDamageSourceGUID = damagedUnits[unitGUID]
 				if lastDamageSourceGUID then
-					local lastDamageSourceInParty = PQLUtil.Units:IsInParty(lastDamageSourceGUID)
+					local lastDamageSourceInParty = PQL.UTIL.UNIT:IsInParty(lastDamageSourceGUID)
 					if lastDamageSourceInParty then
 						goal:Update("currentCount", goal:GetNumber("currentCount") + 1, PQL_NOT_STRICT)
 						self:DetermineGoalCompletion(goal)

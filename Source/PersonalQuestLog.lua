@@ -55,7 +55,7 @@ function PQL:OnInitialize()
 	self.ph:SetScript("OnEvent", function(_, event, arg1, arg2)
 		-- Store merchant items when a store is opened.
 		if event == "MERCHANT_SHOW" or event == "MERCHANT_UPDATE" then
-			PQLUtil.Merchant:Update()
+			PQL.UTIL.MERCHANT:Update()
 
 		-- Bag items or currency have changed. Process goals.
 		elseif event == "BAG_UPDATE" or event == "CURRENCY_DISPLAY_UPDATE" then
@@ -67,7 +67,7 @@ function PQL:OnInitialize()
 
 		-- Item info received (async response).
 		elseif event == "ITEM_DATA_LOAD_RESULT" or event == "GET_ITEM_INFO_RECEIVED" then
-			PQLUtil.Items:_RunGetCallbacks(arg1, arg2)
+			PQL.UTIL.ITEM:_RunGetCallbacks(arg1, arg2)
 		end
 	end)
 

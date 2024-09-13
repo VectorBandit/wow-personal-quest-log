@@ -40,7 +40,7 @@ local function Instantiate(data)
 			callback(description)
 
 		elseif self:IsType(PQL_GOALTYPE_ITEM) then
-			PQLUtil.Items:Get(self:Get("resourceID"), function(item)
+			PQL.UTIL.ITEM:Get(self:Get("resourceID"), function(item)
 				local countText = BuildResourceCountText(self)
 				local itemName = item and item.name or "[ITEM_NOT_FOUND]"
 
@@ -49,14 +49,14 @@ local function Instantiate(data)
 
 		elseif self:IsType(PQL_GOALTYPE_CURRENCY) then
 			local countText = BuildResourceCountText(self)
-			local currency = PQLUtil.Currencies:Get(self:Get("resourceID"))
+			local currency = PQL.UTIL.CURRENCY:Get(self:Get("resourceID"))
 			local currencyName = currency and currency.name or "[CURRENCY_NOT_FOUND]"
 
 			callback(string.format("%s %s", countText, currencyName))
 
 		elseif self:IsType(PQL_GOALTYPE_UNIT) then
 			local countText = BuildResourceCountText(self)
-			local unitName = PQLUtil.Units:GetNameFromID(self:Get("unitID"))
+			local unitName = PQL.UTIL.UNIT:GetNameFromID(self:Get("unitID"))
 			if not unitName then unitName = "[UNIT_NOT_FOUND]" end
 
 			callback(string.format("%s %s", countText, unitName))
@@ -120,13 +120,13 @@ local function Instantiate(data)
 
 	function e:ShowTooltip(anchorTo)
 		if self:IsType(PQL_GOALTYPE_ITEM) then
-			PQLUtil.Items:ShowTooltip(self:Get("resourceID"), anchorTo)
+			PQL.UTIL.ITEM:ShowTooltip(self:Get("resourceID"), anchorTo)
 
 		elseif self:IsType(PQL_GOALTYPE_CURRENCY) then
-			PQLUtil.Currencies:ShowTooltip(self:Get("resourceID"), anchorTo)
+			PQL.UTIL.CURRENCY:ShowTooltip(self:Get("resourceID"), anchorTo)
 
 		elseif self:IsType(PQL_GOALTYPE_UNIT) then
-			PQLUtil.Units:ShowTooltip(self:Get("unitID"), anchorTo)
+			PQL.UTIL.UNIT:ShowTooltip(self:Get("unitID"), anchorTo)
 		end
 	end
 

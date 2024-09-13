@@ -25,10 +25,10 @@ function PQL.main.GroupDrawer:Init()
 	PQL:On("ModifiedItemClick", function(itemID)
 		if not d.isOpen then return end
 
-		local merchantItem = PQLUtil.Merchant:GetItemByID(itemID)
+		local merchantItem = PQL.UTIL.MERCHANT:GetItemByID(itemID)
 		if merchantItem then
 			local notes = "Item: "..merchantItem.link.."\n\n"
-			notes = notes.."Location: "..PQLUtil.Links:MakePin()
+			notes = notes.."Location: "..PQL.UTIL.LINK:MakePin()
 
 			local quest = PQL.ENTITY.Quest:Create(d.data:getID(), {
 				title = merchantItem.name,
